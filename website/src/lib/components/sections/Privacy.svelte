@@ -27,7 +27,7 @@
 		<div class="head">
 			<h2 id="privacy-title" class="display">Privacy</h2>
 			<p>
-				Lyriq has no account, no analytics and no server of its own. Here's what it asks your browser
+				The Lyriq extension has no account, no analytics and no server of its own. Here's what it asks your browser
 				for, and what it sends anywhere.
 			</p>
 		</div>

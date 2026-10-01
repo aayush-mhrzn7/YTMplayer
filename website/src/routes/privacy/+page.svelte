@@ -4,13 +4,14 @@
 
 	// Every statement here was checked against extension/manifest.json and extension/src.
 	// Update this page whenever the extension starts collecting or sending anything new.
+	// The website (not the extension) uses Vercel Web Analytics: see "This website" below.
 </script>
 
 <svelte:head>
 	<title>Privacy policy | Lyriq</title>
 	<meta
 		name="description"
-		content="What the Lyriq browser extension and this website access, store and send. No accounts, no analytics, no tracking."
+		content="What the Lyriq browser extension and this website access, store and send. The extension has no accounts, no analytics and no tracking."
 	/>
 </svelte:head>
 
@@ -18,9 +19,10 @@
 	{#snippet summary()}
 		<p>The short version:</p>
 		<ul>
-			<li>Lyriq has no accounts, no analytics, no ads and no server of its own.</li>
+			<li>The extension has no accounts, no analytics, no ads and no server of its own.</li>
 			<li>To find lyrics, it sends the song's title, artist and length to lrclib.net.</li>
 			<li>Your settings and the current song are saved in your browser, on your device only.</li>
+			<li>This website counts page views with Vercel Web Analytics, which doesn't use cookies.</li>
 			<li>Nothing is sold or shared with anyone else.</li>
 		</ul>
 	{/snippet}
@@ -91,8 +93,16 @@
 
 	<h2 id="this-website">This website</h2>
 	<p>
-		This website doesn't use cookies, analytics or any third-party tracking, and it loads its fonts
-		and images from its own server. If you use the light/dark switch, your choice is saved in your
+		This website uses <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank"
+			rel="noreferrer">Vercel Web Analytics</a
+		> to count how many people visit and which pages they look at. It doesn't use cookies. Vercel
+		records the page, the site you came from, and general details such as your country, browser and
+		type of device, so the numbers can be shown in aggregate. It doesn't build a profile of you or
+		follow you to other websites. This applies to the website only; the extension doesn't use it.
+	</p>
+	<p>
+		The website doesn't use any other analytics, advertising or tracking, and it loads its fonts and
+		images from its own server. If you use the light/dark switch, your choice is saved in your
 		browser's local storage under <code>lyriq-theme</code> so the page remembers it; clearing your
 		browser data removes it. The demo on the home page runs entirely in your browser and doesn't
 		connect to YouTube Music or lrclib.
