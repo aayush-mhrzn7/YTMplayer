@@ -8,6 +8,9 @@
 	import LyriqWidget from '$lib/components/LyriqWidget.svelte';
 	import SampleSite from '$lib/components/SampleSite.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import Faq from '$lib/components/sections/Faq.svelte';
+	import HowSyncWorks from '$lib/components/sections/HowSyncWorks.svelte';
+	import Privacy from '$lib/components/sections/Privacy.svelte';
 	import { DemoPlayer } from '$lib/demo/player.svelte';
 
 	const REPO = 'https://github.com/aayush-mhrzn7/YTMplayer';
@@ -191,7 +194,9 @@
 		<nav aria-label="Primary">
 			<a href="#how">How it works</a>
 			<a href="#demo">Test it out</a>
+			<a href="#privacy">Privacy</a>
 			<a href="#install">Install</a>
+			<a href="#faq">Questions</a>
 		</nav>
 		<div class="nav-actions">
 			<ThemeToggle />
@@ -206,7 +211,6 @@
 <main id="top">
 	<section class="hero wrap">
 		<div class="hero-copy">
-			<!-- The headline is set like the widget: previous line, current line, next line -->
 			<h1 class="display">Synced lyrics on every tab you open.</h1>
 			<p class="hero-sub">A small glass widget that keeps time with YouTube Music, on any page you're reading.</p>
 			<div class="cta">
@@ -295,6 +299,10 @@
 		</div>
 	</section>
 
+	<HowSyncWorks />
+
+	<Privacy repo={REPO} />
+
 	<section id="install" class="install wrap">
 		<h2 class="display">Install</h2>
 		<p class="install-lede">
@@ -340,6 +348,8 @@ npm run build</code></pre>
 			</div>
 		</div>
 	</section>
+
+	<Faq />
 </main>
 
 <footer class="footer">
@@ -374,7 +384,9 @@ npm run build</code></pre>
 					<ul>
 						<li><a href="#how">How it works</a></li>
 						<li><a href="#demo">Test it out</a></li>
+						<li><a href="#privacy">Privacy</a></li>
 						<li><a href="#install">Install</a></li>
+						<li><a href="#faq">Questions</a></li>
 					</ul>
 				</div>
 				<div>
@@ -404,15 +416,6 @@ npm run build</code></pre>
 </footer>
 
 <style>
-	.wrap {
-		width: min(1200px, 100% - 32px);
-		margin-inline: auto;
-	}
-
-	h2 {
-		margin: 0;
-		font-size: clamp(32px, 4vw, 46px);
-	}
 
 	/* Nav */
 	.nav {
@@ -553,13 +556,6 @@ npm run build</code></pre>
 		gap: 64px;
 		align-items: center;
 		padding: 72px 0 112px;
-	}
-
-	.lyric-line {
-		margin: 0 0 16px;
-		font-size: clamp(20px, 1.8vw, 24px);
-		line-height: 1.3;
-		color: var(--muted);
 	}
 
 	h1 {

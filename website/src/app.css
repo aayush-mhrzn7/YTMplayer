@@ -318,6 +318,22 @@ html.theme-changing *::after {
 		fill 300ms ease !important;
 }
 
+/* Page container and section headings, shared by the page and the section components */
+.wrap {
+	width: min(1200px, 100% - 32px);
+	margin-inline: auto;
+}
+
+h2.display {
+	margin: 0;
+	font-size: clamp(32px, 4vw, 46px);
+}
+
+/* Accordions may animate to and from their natural height */
+:root {
+	interpolate-size: allow-keywords;
+}
+
 /* Instant, physical press feedback on anything pressable */
 .press {
 	transition: transform 160ms var(--ease-out);
