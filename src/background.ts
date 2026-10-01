@@ -311,6 +311,59 @@ async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
   return { ok: false };
 }
 
+function isYtmUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "music.youtube.com";
+  } catch {
+    return false;
+  }
+}
+
+async function clearPlayback(): Promise<void> {
+  fetchToken += 1;
+  await persistNowPlaying(null, true);
+  await setLyrics(EMPTY_LYRICS);
+  void broadcastState(true);
+}
+
+/** Hide overlays when the YTM source tab is gone or no longer on music.youtube.com. */
+async function clearIfSourceGone(removedTabId?: number): Promise<void> {
+  const current = cachedNow ?? (await getNowPlaying());
+  if (!current) return;
+
+  if (removedTabId != null && removedTabId === current.sourceTabId) {
+    await clearPlayback();
+    return;
+  }
+
+  try {
+    const tab = await chrome.tabs.get(current.sourceTabId);
+    if (!isYtmUrl(tab.url)) {
+      await clearPlayback();
+    }
+  } catch {
+    // Tab no longer exists
+    await clearPlayback();
+  }
+}
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  void clearIfSourceGone(tabId);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.url == null) return;
+  void (async () => {
+    const current = cachedNow ?? (await getNowPlaying());
+    if (!current || current.sourceTabId !== tabId) return;
+    if (!isYtmUrl(changeInfo.url)) {
+      await clearPlayback();
+    }
+  })();
+});
+
 chrome.runtime.onInstalled.addListener(() => {
   void seedDefaults();
 });
@@ -361,4 +414,5 @@ chrome.storage.onChanged.addListener((_changes, area) => {
 void (async () => {
   await seedDefaults();
   cachedNow = await getNowPlaying();
+  await clearIfSourceGone();
 })();
