@@ -207,7 +207,6 @@
 	<section class="hero wrap">
 		<div class="hero-copy">
 			<!-- The headline is set like the widget: previous line, current line, next line -->
-			<p class="lyric-line before sung" aria-hidden="true">the song is playing in another tab,</p>
 			<h1 class="display">Synced lyrics on every tab you open.</h1>
 			<p class="hero-sub">A small glass widget that keeps time with YouTube Music, on any page you're reading.</p>
 			<div class="cta">
