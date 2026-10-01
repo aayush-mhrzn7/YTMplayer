@@ -14,6 +14,8 @@ export interface Prefs {
   enabled: boolean;
   widgetClosed: boolean;
   widgetMinimized: boolean;
+  /** True when the user manually minimized; blocks auto-expand when lyrics return */
+  minimizePinned: boolean;
   transportEnabled: boolean;
   /** Distance from viewport left to panel left; null = default */
   widgetLeft: number | null;
@@ -110,6 +112,7 @@ export const DEFAULT_PREFS: Prefs = {
   enabled: true,
   widgetClosed: false,
   widgetMinimized: false,
+  minimizePinned: false,
   transportEnabled: false,
   widgetLeft: null,
   widgetBottom: null,

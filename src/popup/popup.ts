@@ -27,6 +27,9 @@ function readPrefs(data: Record<string, unknown>): Prefs {
     widgetMinimized: Boolean(
       data.widgetMinimized ?? DEFAULT_PREFS.widgetMinimized,
     ),
+    minimizePinned: Boolean(
+      data.minimizePinned ?? DEFAULT_PREFS.minimizePinned,
+    ),
     transportEnabled: Boolean(
       data.transportEnabled ?? DEFAULT_PREFS.transportEnabled,
     ),
@@ -85,6 +88,7 @@ showBtn.addEventListener("click", () => {
   void chrome.storage.local.set({
     widgetClosed: false,
     widgetMinimized: false,
+    minimizePinned: false,
     enabled: true,
   });
   enabled.checked = true;

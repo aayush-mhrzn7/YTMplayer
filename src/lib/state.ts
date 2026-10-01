@@ -16,6 +16,9 @@ export async function getPrefs(): Promise<Prefs> {
     widgetMinimized: Boolean(
       data.widgetMinimized ?? DEFAULT_PREFS.widgetMinimized,
     ),
+    minimizePinned: Boolean(
+      data.minimizePinned ?? DEFAULT_PREFS.minimizePinned,
+    ),
     transportEnabled: Boolean(
       data.transportEnabled ?? DEFAULT_PREFS.transportEnabled,
     ),
@@ -68,6 +71,9 @@ export async function getAppState(): Promise<{
       widgetClosed: Boolean(data.widgetClosed ?? DEFAULT_PREFS.widgetClosed),
       widgetMinimized: Boolean(
         data.widgetMinimized ?? DEFAULT_PREFS.widgetMinimized,
+      ),
+      minimizePinned: Boolean(
+        data.minimizePinned ?? DEFAULT_PREFS.minimizePinned,
       ),
       transportEnabled: Boolean(
         data.transportEnabled ?? DEFAULT_PREFS.transportEnabled,

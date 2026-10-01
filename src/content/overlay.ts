@@ -133,7 +133,12 @@ function ensureHost(): void {
   header.addEventListener("pointerdown", onDragStart);
   minimizeEl?.addEventListener("click", (e) => {
     e.stopPropagation();
-    void setPrefs({ widgetMinimized: !prefs.widgetMinimized });
+    const nextMinimized = !prefs.widgetMinimized;
+    // Manual minimize pins; maximize clears the pin so auto can work again
+    void setPrefs({
+      widgetMinimized: nextMinimized,
+      minimizePinned: nextMinimized,
+    });
   });
   panel.querySelector(".close")?.addEventListener("click", () => {
     void setPrefs({ widgetClosed: true });
@@ -349,6 +354,46 @@ function lyricsToken(state: LyricsState): string {
   return `${state.status}|${state.fetchedFor}|${state.lines.length}`;
 }
 
+function hasUsableLyrics(state: LyricsState): boolean {
+  return state.status === "ready" && state.lines.length > 0;
+}
+
+function hasNoLyrics(state: LyricsState): boolean {
+  return (
+    state.status === "not_found" ||
+    state.status === "instrumental" ||
+    (state.status === "ready" && state.lines.length === 0)
+  );
+}
+
+/**
+ * Collapse only when lyrics are definitively unavailable.
+ * Stay put while loading so track switches don't flicker open/closed.
+ * Expand when lyrics arrive, unless the user pinned minimize.
+ */
+function syncMinimizeToLyrics(): void {
+  if (lyrics.status === "loading" || lyrics.status === "idle") {
+    return;
+  }
+
+  if (hasNoLyrics(lyrics)) {
+    if (!prefs.widgetMinimized) {
+      prefs = { ...prefs, widgetMinimized: true };
+      void setPrefs({ widgetMinimized: true });
+      applyVisibility();
+    }
+    return;
+  }
+
+  if (!hasUsableLyrics(lyrics)) return;
+  if (prefs.minimizePinned) return;
+  if (prefs.widgetMinimized) {
+    prefs = { ...prefs, widgetMinimized: false };
+    void setPrefs({ widgetMinimized: false });
+    applyVisibility();
+  }
+}
+
 function showStatus(message: string): void {
   if (!lyricsEl) return;
   lyricsEl.innerHTML = `<div class="status">${message}</div>`;
@@ -484,6 +529,7 @@ function applyState(state: AppState): void {
   if (trackChanged || token !== prevLyricsToken) {
     if (visible()) renderLyricsShell();
     else lastLyricsToken = token;
+    syncMinimizeToLyrics();
   } else if (visible() && nowPlaying && nowPlaying.playing !== wasPlaying) {
     renderTransport();
   }
