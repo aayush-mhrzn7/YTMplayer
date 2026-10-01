@@ -63,6 +63,16 @@
   object-fit: cover;
   background: #2a2a30;
   flex-shrink: 0;
+  cursor: pointer;
+}
+
+.art:hover {
+  opacity: 0.9;
+}
+
+.art:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
 }
 
 .meta {
@@ -275,11 +285,6 @@
 .btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
-}
-
-.btn.focus-source {
-  font-size: 15px;
-  font-weight: 600;
 }
 
 .btn.minimize {

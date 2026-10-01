@@ -94,13 +94,12 @@ function ensureHost(): void {
   panel.className = "panel";
   panel.innerHTML = `
     <div class="header">
-      <img class="art" alt="" width="40" height="40" />
+      <img class="art" alt="" width="40" height="40" title="Open YouTube Music tab" aria-label="Open YouTube Music tab" role="button" tabindex="0" />
       <div class="meta">
         <div class="title"></div>
         <div class="artist"></div>
       </div>
       <div class="actions">
-        <button class="btn focus-source" type="button" title="Open YouTube Music tab" aria-label="Open YouTube Music tab">↗</button>
         <button class="btn minimize" type="button" title="Minimize" aria-label="Minimize">–</button>
         <button class="btn close" type="button" title="Close" aria-label="Close">×</button>
       </div>
@@ -163,7 +162,13 @@ function ensureHost(): void {
 
   const header = panel.querySelector(".header") as HTMLElement;
   header.addEventListener("pointerdown", onDragStart);
-  panel.querySelector(".focus-source")?.addEventListener("click", (e) => {
+  artEl?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    void chrome.runtime.sendMessage({ type: "FOCUS_SOURCE_TAB" });
+  });
+  artEl?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
     e.stopPropagation();
     void chrome.runtime.sendMessage({ type: "FOCUS_SOURCE_TAB" });
   });
@@ -333,7 +338,13 @@ function renderProgress(): void {
 function onDragStart(e: PointerEvent): void {
   if (!panel) return;
   const target = e.target as HTMLElement;
-  if (target.closest(".btn") || target.closest(".transport")) return;
+  if (
+    target.closest(".btn") ||
+    target.closest(".transport") ||
+    target.closest(".art")
+  ) {
+    return;
+  }
 
   const rect = panel.getBoundingClientRect();
   const bottom = window.innerHeight - rect.bottom;
