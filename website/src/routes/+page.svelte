@@ -1,77 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import GithubLogo from 'phosphor-svelte/lib/GithubLogo';
-	import Globe from 'phosphor-svelte/lib/Globe';
-	import Heart from 'phosphor-svelte/lib/Heart';
-	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
 	import BrowserDemo from '$lib/components/BrowserDemo.svelte';
 	import LyriqWidget from '$lib/components/LyriqWidget.svelte';
 	import SampleSite from '$lib/components/SampleSite.svelte';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import Faq from '$lib/components/sections/Faq.svelte';
 	import HowSyncWorks from '$lib/components/sections/HowSyncWorks.svelte';
 	import Privacy from '$lib/components/sections/Privacy.svelte';
 	import { DemoPlayer } from '$lib/demo/player.svelte';
+	import { REPO } from '$lib/site';
 
-	const REPO = 'https://github.com/aayush-mhrzn7/YTMplayer';
-	const PORTFOLIO = 'https://aayush-maharjan.vercel.app';
-	const LINKEDIN = 'https://www.linkedin.com/in/aayush-maharjan-47a017316/';
 
 	const player = new DemoPlayer();
 	let browserEl: HTMLDivElement | undefined = $state();
 
-	// Header hides while scrolling down, and comes back on scroll up or once scrolling stops.
-	// Small movements and the bounce past the top/bottom on phones are ignored, so it doesn't flicker.
-	const HIDE_AFTER = 24;
-	const SHOW_AFTER = 8;
-	let navHidden = $state(false);
-	let lastY = 0;
-	let travel = 0;
-	let ticking = false;
-	let settleTimer: ReturnType<typeof setTimeout> | undefined;
-
-	function settle() {
-		clearTimeout(settleTimer);
-		travel = 0;
-		navHidden = false;
-	}
-
-	function onScroll() {
-		if (ticking) return;
-		ticking = true;
-		requestAnimationFrame(() => {
-			ticking = false;
-			const max = document.documentElement.scrollHeight - window.innerHeight;
-			// Clamp out iOS rubber-band overscroll, which reports y < 0 or y > max
-			const y = Math.min(Math.max(window.scrollY, 0), max);
-			const delta = y - lastY;
-			lastY = y;
-			if (delta === 0) return;
-
-			if (y < 80) {
-				settle();
-				return;
-			}
-			// Count travel in one direction; a change of direction starts the count again
-			travel = Math.sign(delta) === Math.sign(travel) ? travel + delta : delta;
-			if (travel > HIDE_AFTER) navHidden = true;
-			else if (travel < -SHOW_AFTER) navHidden = false;
-
-			// Fallback for browsers without the scrollend event
-			if (!('onscrollend' in window)) {
-				clearTimeout(settleTimer);
-				settleTimer = setTimeout(settle, 250);
-			}
-		});
-	}
-
 	onMount(() => {
 		const stop = player.start();
 		player.select(0, true);
-		return () => {
-			stop();
-			clearTimeout(settleTimer);
-		};
+		return stop;
 	});
 
 	function reveal() {
@@ -168,8 +114,6 @@
 	/>
 </svelte:head>
 
-<svelte:window onscroll={onScroll} onscrollend={settle} />
-
 {#snippet featureRow(f: Feature)}
 	<li class="feature">
 		<div>
@@ -186,27 +130,6 @@
 	</li>
 {/snippet}
 
-<header class="nav" class:hidden={navHidden}>
-	<div class="wrap nav-inner">
-		<a href="#top" class="logo" aria-label="Lyriq home">
-			<img src="/icons/lyriq-logo.png" alt="Lyriq" width="112" height="28" />
-		</a>
-		<nav aria-label="Primary">
-			<a href="#how">How it works</a>
-			<a href="#demo">Test it out</a>
-			<a href="#privacy">Privacy</a>
-			<a href="#install">Install</a>
-			<a href="#faq">Questions</a>
-		</nav>
-		<div class="nav-actions">
-			<ThemeToggle />
-			<a class="btn btn-strong small press" href={REPO} target="_blank" rel="noreferrer">
-				<GithubLogo size={18} weight="fill" />
-				GitHub
-			</a>
-		</div>
-	</div>
-</header>
 
 <main id="top">
 	<section class="hero wrap">
@@ -352,202 +275,15 @@ npm run build</code></pre>
 	<Faq />
 </main>
 
-<footer class="footer">
-	<div class="wrap">
-		<div class="footer-top">
-			<div class="footer-brand">
-				<img class="footer-logo" src="/icons/lyriq-logo.png" alt="Lyriq" width="128" height="32" />
-				<p class="footer-about">
-					Synced lyrics for YouTube Music, on top of whatever you're reading. Built for Chrome and
-					Chromium.
-				</p>
-				<p class="footer-info">
-					Lyrics provided by <a href="https://lrclib.net" target="_blank" rel="noreferrer">lrclib.net</a>
-				</p>
-				<h3 class="footer-head">Links</h3>
-				<div class="socials">
-					<a href={REPO} target="_blank" rel="noreferrer" aria-label="Lyriq on GitHub" title="GitHub">
-						<GithubLogo size={20} weight="fill" />
-					</a>
-					<a href={LINKEDIN} target="_blank" rel="noreferrer" aria-label="Aayush Maharjan on LinkedIn" title="LinkedIn">
-						<LinkedinLogo size={20} weight="fill" />
-					</a>
-					<a href={PORTFOLIO} target="_blank" rel="noreferrer" aria-label="Aayush Maharjan's portfolio" title="Portfolio">
-						<Globe size={20} weight="bold" />
-					</a>
-				</div>
-			</div>
-
-			<nav class="footer-cols" aria-label="Footer">
-				<div>
-					<h3 class="footer-head">Product</h3>
-					<ul>
-						<li><a href="#how">How it works</a></li>
-						<li><a href="#demo">Test it out</a></li>
-						<li><a href="#privacy">Privacy</a></li>
-						<li><a href="#install">Install</a></li>
-						<li><a href="#faq">Questions</a></li>
-					</ul>
-				</div>
-				<div>
-					<h3 class="footer-head">Resources</h3>
-					<ul>
-						<li><a href={REPO} target="_blank" rel="noreferrer">GitHub</a></li>
-						<li><a href="{REPO}/issues" target="_blank" rel="noreferrer">Report a problem</a></li>
-					</ul>
-				</div>
-			</nav>
-		</div>
-
-		<div class="footer-bottom">
-			<p class="credit">
-				<span
-					>Made with <Heart size={14} weight="fill" class="heart" aria-label="love" /> by
-					<a class="credit-link" href={PORTFOLIO} target="_blank" rel="noreferrer">Aayush Maharjan</a></span
-				>
-				<span>Copyright ©{new Date().getFullYear()} Lyriq. All rights reserved.</span>
-			</p>
-			<p class="footer-legal">
-				<span>Personal use licence</span>
-			</p>
-		</div>
-	</div>
-	<div class="footer-mark" aria-hidden="true">LYRIQ</div>
-</footer>
 
 <style>
 
-	/* Nav */
-	.nav {
-		position: sticky;
-		top: 0;
-		z-index: 50;
-		background: var(--material);
-		backdrop-filter: blur(20px) saturate(180%);
-		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		box-shadow: 0 1px 0 var(--line);
-		transition:
-			transform 250ms var(--ease-out),
-			opacity 200ms var(--ease-out);
-		will-change: transform;
-	}
-
-	/* Leaves upward and comes back down the same way */
-	.nav.hidden:not(:focus-within) {
-		transform: translateY(-100%);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.nav.hidden:not(:focus-within) {
-			transform: none;
-			opacity: 0;
-		}
-	}
-
-	@media (prefers-reduced-transparency: reduce) {
-		.nav {
-			background: var(--bg);
-			backdrop-filter: none;
-			-webkit-backdrop-filter: none;
-		}
-	}
-
-	.nav-inner {
-		display: flex;
-		align-items: center;
-		gap: 24px;
-		height: 64px;
-	}
-
-	.logo img,
-	.footer-logo {
-		display: block;
-		width: auto;
-		filter: var(--logo-filter);
-	}
-
-	.logo img {
-		height: 26px;
-	}
-
-	.nav nav {
-		display: flex;
-		gap: 28px;
-		margin-left: auto;
-		font-size: 15px;
-		font-weight: 500;
-	}
-
-	.nav nav a {
-		text-decoration: none;
-		color: var(--text-2);
-	}
-
-	.nav nav a:hover {
-		color: var(--text);
-	}
-
-	.nav-actions {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	/* Buttons: always pills */
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		height: 48px;
-		padding: 0 24px;
-		border-radius: 999px;
-		font-weight: 500;
-		font-size: 15px;
-		text-decoration: none;
-		white-space: nowrap;
-		transition:
-			transform 160ms var(--ease-out),
-			background-color 150ms ease,
-			box-shadow 150ms ease;
-	}
-
-	.btn.small {
-		height: 38px;
-		padding: 0 16px;
-		font-size: 14px;
-	}
-
-	.btn-accent {
-		background: var(--accent);
-		color: #fff;
-	}
-
 	@media (hover: hover) and (pointer: fine) {
-		.btn-accent:hover {
-			background: var(--accent-hover);
-		}
-		.btn-strong:hover {
-			background: color-mix(in srgb, var(--strong-bg) 86%, var(--accent));
-		}
-		.btn-quiet:hover {
-			box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 35%, transparent);
-		}
 		.chip:hover {
 			background: var(--chip-hover);
 			box-shadow: inset 0 0 0 1.5px var(--chip-line-hover);
 		}
 	}
-
-	.btn-strong {
-		background: var(--strong-bg);
-		color: var(--strong-text);
-	}
-
-	.btn-quiet {
-		color: var(--text);
-		box-shadow: inset 0 0 0 1.5px var(--line);
-	}
-
 
 	/* Hero */
 	.hero {
@@ -875,165 +611,6 @@ npm run build</code></pre>
 		border-radius: 6px;
 	}
 
-	/* Footer */
-	.footer {
-		background: var(--band);
-		color: var(--text-2);
-		box-shadow: 0 -1px 0 var(--line);
-		padding-top: 96px;
-		overflow: hidden;
-	}
-
-	.footer-top {
-		display: flex;
-		justify-content: space-between;
-		gap: 56px;
-		flex-wrap: wrap;
-	}
-
-	.footer-brand {
-		max-width: 440px;
-	}
-
-	.footer-logo {
-		height: 32px;
-		filter: var(--logo-filter);
-	}
-
-	.footer-about {
-		margin: 20px 0 0;
-		font-size: 16px;
-		line-height: 1.6;
-	}
-
-	.footer-info {
-		margin: 20px 0 0;
-		font-size: 15px;
-	}
-
-	.footer a {
-		color: var(--text-2);
-		text-decoration: none;
-		transition: color 0.15s ease;
-	}
-
-	.footer a:hover {
-		color: var(--text);
-	}
-
-	.footer-info a {
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		text-decoration-color: var(--line);
-	}
-
-	.footer-head {
-		margin: 0;
-		font-size: 16px;
-		font-weight: 500;
-		color: var(--text);
-	}
-
-	.footer-brand .footer-head {
-		margin-top: 32px;
-	}
-
-	.socials {
-		display: flex;
-		gap: 14px;
-		margin-top: 16px;
-	}
-
-	.footer .socials a {
-		display: grid;
-		place-items: center;
-		width: 38px;
-		height: 38px;
-		border-radius: 50%;
-		background: var(--social-bg);
-		color: var(--social-fg);
-	}
-
-	.footer .socials a:hover {
-		background: var(--text);
-		color: var(--bg);
-	}
-
-	.footer-cols {
-		display: flex;
-		gap: 88px;
-	}
-
-	.footer-cols ul {
-		list-style: none;
-		margin: 22px 0 0;
-		padding: 0;
-		display: grid;
-		gap: 16px;
-		font-size: 16px;
-	}
-
-	.footer-bottom {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 12px 24px;
-		flex-wrap: wrap;
-		margin-top: 88px;
-		font-size: 14px;
-		color: var(--muted);
-	}
-
-	.footer-bottom p {
-		margin: 0;
-	}
-
-	.credit {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 4px 20px;
-	}
-
-	.credit > span:first-child {
-		color: var(--text-2);
-	}
-
-	.credit :global(.heart) {
-		vertical-align: -2px;
-		color: #e5484d;
-	}
-
-	.footer .credit-link {
-		color: var(--text);
-		font-weight: 500;
-		text-decoration: underline;
-		text-decoration-color: var(--line);
-		text-underline-offset: 3px;
-	}
-
-	.footer-legal {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-	}
-
-
-	/* Big outlined wordmark, cropped by the bottom edge */
-	.footer-mark {
-		width: min(1200px, 100% - 32px);
-		margin: 64px auto 0;
-		font-size: clamp(100px, 27.5vw, 370px);
-		font-weight: 500;
-		line-height: 0.78;
-		letter-spacing: 0.02em;
-		text-align: center;
-		color: transparent;
-		-webkit-text-stroke: 1.5px var(--mark-stroke);
-		user-select: none;
-		height: 0.62em;
-		overflow: hidden;
-	}
-
 	/* Responsive */
 	@media (max-width: 1000px) {
 		.features {
@@ -1061,12 +638,6 @@ npm run build</code></pre>
 	}
 
 	@media (max-width: 640px) {
-		.nav nav {
-			display: none;
-		}
-		.nav-actions {
-			margin-left: auto;
-		}
 		.hero-stage {
 			height: 400px;
 		}
@@ -1095,22 +666,6 @@ npm run build</code></pre>
 		}
 		.install-code {
 			padding: 20px;
-		}
-		.footer {
-			padding-top: 64px;
-		}
-		.footer-cols {
-			gap: 56px;
-		}
-		.footer-bottom {
-			margin-top: 56px;
-			flex-direction: column;
-			align-items: flex-start;
-		}
-		.footer-legal {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 6px;
 		}
 	}
 </style>

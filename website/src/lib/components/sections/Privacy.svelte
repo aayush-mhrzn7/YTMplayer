@@ -72,6 +72,8 @@
 				</dl>
 			</div>
 		</div>
+
+		<p class="more"><a href="/privacy">Read the full privacy policy</a></p>
 	</div>
 </section>
 
@@ -129,6 +131,16 @@
 
 	dd a {
 		color: var(--accent-text);
+		text-underline-offset: 3px;
+	}
+
+	.more {
+		margin: 48px 0 0;
+	}
+
+	.more a {
+		color: var(--accent-text);
+		font-weight: 500;
 		text-underline-offset: 3px;
 	}
 
