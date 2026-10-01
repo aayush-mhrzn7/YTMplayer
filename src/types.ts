@@ -104,6 +104,10 @@ export type SetPrefsMessage = {
   prefs: Partial<Prefs>;
 };
 
+export type FocusSourceTabMessage = {
+  type: "FOCUS_SOURCE_TAB";
+};
+
 export type StatePushMessage = {
   type: "STATE_PUSH";
   prefs: Prefs;
@@ -118,6 +122,7 @@ export type ExtensionMessage =
   | TransportCommandMessage
   | GetStateMessage
   | SetPrefsMessage
+  | FocusSourceTabMessage
   | StatePushMessage;
 
 export interface AppState {

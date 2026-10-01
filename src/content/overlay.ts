@@ -100,6 +100,7 @@ function ensureHost(): void {
         <div class="artist"></div>
       </div>
       <div class="actions">
+        <button class="btn focus-source" type="button" title="Open YouTube Music tab" aria-label="Open YouTube Music tab">↗</button>
         <button class="btn minimize" type="button" title="Minimize" aria-label="Minimize">–</button>
         <button class="btn close" type="button" title="Close" aria-label="Close">×</button>
       </div>
@@ -162,6 +163,10 @@ function ensureHost(): void {
 
   const header = panel.querySelector(".header") as HTMLElement;
   header.addEventListener("pointerdown", onDragStart);
+  panel.querySelector(".focus-source")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    void chrome.runtime.sendMessage({ type: "FOCUS_SOURCE_TAB" });
+  });
   minimizeEl?.addEventListener("click", (e) => {
     e.stopPropagation();
     const nextMinimized = !prefs.widgetMinimized;

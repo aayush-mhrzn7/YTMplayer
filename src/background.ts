@@ -477,6 +477,42 @@ async function clearPlayback(): Promise<void> {
 }
 
 /** Hide overlays when the YTM source tab is gone or no longer on music.youtube.com. */
+async function focusAnyYtmTab(): Promise<{ ok: boolean }> {
+  let tabs: chrome.tabs.Tab[] = [];
+  try {
+    tabs = await chrome.tabs.query({ url: "https://music.youtube.com/*" });
+  } catch {
+    return { ok: false };
+  }
+  const tab = tabs.find((t) => t.id != null && t.windowId != null);
+  if (!tab?.id || tab.windowId == null) return { ok: false };
+  try {
+    await chrome.tabs.update(tab.id, { active: true });
+    await chrome.windows.update(tab.windowId, { focused: true });
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function focusSourceTab(): Promise<{ ok: boolean }> {
+  const current = cachedNow ?? (await getNowPlaying());
+  const tabId = current?.sourceTabId;
+  if (tabId == null) return focusAnyYtmTab();
+
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!isYtmUrl(tab.url) || tab.id == null || tab.windowId == null) {
+      return focusAnyYtmTab();
+    }
+    await chrome.tabs.update(tab.id, { active: true });
+    await chrome.windows.update(tab.windowId, { focused: true });
+    return { ok: true };
+  } catch {
+    return focusAnyYtmTab();
+  }
+}
+
 async function clearIfSourceGone(removedTabId?: number): Promise<void> {
   const current = cachedNow ?? (await getNowPlaying());
   if (!current) return;
@@ -572,6 +608,10 @@ chrome.runtime.onMessage.addListener(
 
       if (message.type === "TRANSPORT") {
         return onTransport(message.action, message.time);
+      }
+
+      if (message.type === "FOCUS_SOURCE_TAB") {
+        return focusSourceTab();
       }
 
       const tabId = sender.tab?.id;

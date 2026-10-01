@@ -277,6 +277,11 @@
   color: #fff;
 }
 
+.btn.focus-source {
+  font-size: 15px;
+  font-weight: 600;
+}
+
 .btn.minimize {
   font-size: 16px;
   font-weight: 600;
