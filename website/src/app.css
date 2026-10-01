@@ -1,0 +1,198 @@
+/*
+ * Lyriq tokens. Neutral, Apple-style greys so the colour on the page comes from
+ * the music: the widget takes its tint from the album art.
+ * The logo blue is the one accent, kept for buttons and links.
+ * Radius rule: interactive controls are pills, framed surfaces 16px, nested 10px.
+ */
+:root {
+	/* Surfaces: white page, light-grey bands and panels (Apple's own marketing pages) */
+	--bg: #ffffff;
+	--band: #f5f5f7;
+	--surface: #f5f5f7;
+	--text: #1d1d1f;
+	--text-2: #424245;
+	--muted: #6e6e73;
+	--line: rgba(0, 0, 0, 0.1);
+	--accent: #3b59ff;
+	--accent-hover: #2c47e6;
+	--accent-text: #2c47d6;
+	--accent-soft: rgba(59, 89, 255, 0.1);
+	--strong-bg: #1d1d1f;
+	--strong-text: #f5f5f7;
+	--material: rgba(255, 255, 255, 0.72);
+	--logo-filter: none;
+	--shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.22);
+
+	--chip-line: rgba(0, 0, 0, 0.16);
+	--chip-line-hover: rgba(0, 0, 0, 0.32);
+	--chip-hover: rgba(0, 0, 0, 0.04);
+	--mark-stroke: rgba(0, 0, 0, 0.08);
+	--social-bg: #1d1d1f;
+	--social-fg: #f5f5f7;
+
+	/* Motion: strong curves from the animate skill, one set for the whole site */
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+	--font: 'Instrument Sans Variable', 'Instrument Sans', system-ui, -apple-system, sans-serif;
+	--font-newsreader: 'Newsreader Variable', 'Newsreader', Georgia, 'Times New Roman', serif;
+	--radius: 16px;
+	--radius-inner: 10px;
+	color-scheme: light;
+}
+
+/* Dark: chosen with the toggle, or the system setting when nothing was chosen */
+:root[data-theme="dark"] {
+	--bg: #000000;
+	--band: #111113;
+	--surface: #1c1c1e;
+	--text: #f5f5f7;
+	--text-2: #c7c7cc;
+	--muted: #8e8e93;
+	--line: rgba(255, 255, 255, 0.12);
+	--accent-hover: #5570ff;
+	--accent-text: #8ea0ff;
+	--accent-soft: rgba(142, 160, 255, 0.14);
+	--strong-bg: #f5f5f7;
+	--strong-text: #1d1d1f;
+	--material: rgba(0, 0, 0, 0.72);
+	--logo-filter: brightness(0) invert(0.96);
+	--shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9);
+	--chip-line: rgba(255, 255, 255, 0.24);
+	--chip-line-hover: rgba(255, 255, 255, 0.5);
+	--chip-hover: rgba(255, 255, 255, 0.08);
+	--mark-stroke: rgba(255, 255, 255, 0.09);
+	--social-bg: rgba(245, 245, 247, 0.88);
+	--social-fg: #1d1d1f;
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--bg: #000000;
+		--band: #111113;
+		--surface: #1c1c1e;
+		--text: #f5f5f7;
+		--text-2: #c7c7cc;
+		--muted: #8e8e93;
+		--line: rgba(255, 255, 255, 0.12);
+		--accent-hover: #5570ff;
+		--accent-text: #8ea0ff;
+		--accent-soft: rgba(142, 160, 255, 0.14);
+		--strong-bg: #f5f5f7;
+		--strong-text: #1d1d1f;
+		--material: rgba(0, 0, 0, 0.72);
+		--logo-filter: brightness(0) invert(0.96);
+		--shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9);
+		--chip-line: rgba(255, 255, 255, 0.24);
+		--chip-line-hover: rgba(255, 255, 255, 0.5);
+		--chip-hover: rgba(255, 255, 255, 0.08);
+		--mark-stroke: rgba(255, 255, 255, 0.09);
+		--social-bg: rgba(245, 245, 247, 0.88);
+		--social-fg: #1d1d1f;
+		color-scheme: dark;
+	}
+}
+
+@media (prefers-contrast: more) {
+	:root {
+		--line: rgba(0, 0, 0, 0.35);
+		--muted: #48484a;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+	scroll-padding-top: 24px;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font);
+	font-size: 16px;
+	line-height: 1.55;
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+
+button,
+input {
+	font-family: inherit;
+}
+
+img {
+	max-width: 100%;
+}
+
+a {
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/*
+ * Type. Tracking and leading change with size (tight on display, open on small text).
+ * Instrument Sans narrows slightly at display sizes via its width axis instead of
+ * squeezing letter-spacing, which is what made the old headline letters collide.
+ */
+.display {
+	font-weight: 650;
+	font-stretch: 92%;
+	letter-spacing: -0.02em;
+	line-height: 1.02;
+}
+
+/* Newsreader italic is the "sung" voice: a whole line, set like a lyric */
+.sung {
+	font-family: var(--font-newsreader);
+	font-style: italic;
+	font-weight: 400;
+	font-optical-sizing: auto;
+	letter-spacing: 0;
+}
+
+/* Colours ease between light and dark instead of snapping */
+html.theme-changing,
+html.theme-changing *,
+html.theme-changing *::before,
+html.theme-changing *::after {
+	transition:
+		background-color 300ms ease,
+		color 300ms ease,
+		border-color 300ms ease,
+		box-shadow 300ms ease,
+		fill 300ms ease !important;
+}
+
+/* Instant, physical press feedback on anything pressable */
+.press {
+	transition: transform 160ms var(--ease-out);
+}
+
+.press:active {
+	transform: scale(0.97);
+}
+
+/* Reduced motion keeps fades and colour changes, and drops movement */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	.press:active {
+		transform: none;
+		opacity: 0.8;
+	}
+}
