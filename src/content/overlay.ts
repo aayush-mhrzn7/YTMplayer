@@ -319,7 +319,14 @@ function renderHeader(): void {
     artEl.removeAttribute("src");
     artEl.style.visibility = "hidden";
   }
+  applyAccent(nowPlaying.accentRgb);
   renderTransport();
+}
+
+function applyAccent(rgb: string | null | undefined): void {
+  const value = rgb?.trim() || "18, 18, 22";
+  panel?.style.setProperty("--accent-rgb", value);
+  peek?.style.setProperty("--accent-rgb", value);
 }
 
 function renderTransport(): void {
@@ -442,7 +449,8 @@ function tick(): void {
 function onTrackOrVisibility(): void {
   applyVisibility();
   if (!visible()) return;
-  renderHeader();
+  if (nowPlaying) renderHeader();
+  else applyAccent(null);
 }
 
 function applyState(state: AppState): void {

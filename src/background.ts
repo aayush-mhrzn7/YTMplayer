@@ -1,3 +1,4 @@
+import { sampleAccentRgb } from "./lib/album-color";
 import { fetchSyncedLyrics } from "./lib/lrclib";
 import { trackKey } from "./lib/normalize";
 import {
@@ -158,6 +159,10 @@ async function onTrackUpdate(
     title: msg.title.trim(),
     artist: msg.artist.trim(),
     albumArtUrl: msg.albumArtUrl,
+    accentRgb:
+      current?.trackKey === key && current.albumArtUrl === msg.albumArtUrl
+        ? current.accentRgb
+        : null,
     duration: msg.duration,
     currentTime: msg.currentTime,
     recordedAt: msg.recordedAt,
@@ -178,6 +183,20 @@ async function onTrackUpdate(
       void fetchForTrack(next);
     }
   }
+
+  void refreshAccent(next);
+}
+
+async function refreshAccent(np: NowPlaying): Promise<void> {
+  if (!np.albumArtUrl) return;
+  if (np.accentRgb) return;
+  const rgb = await sampleAccentRgb(np.albumArtUrl);
+  const latest = cachedNow ?? (await getNowPlaying());
+  if (!latest || latest.trackKey !== np.trackKey) return;
+  if (latest.albumArtUrl !== np.albumArtUrl) return;
+  if (latest.accentRgb === rgb) return;
+  const updated: NowPlaying = { ...latest, accentRgb: rgb };
+  await persistNowPlaying(updated, true);
 }
 
 async function onPlayback(
@@ -221,16 +240,44 @@ async function findYtmTabIds(): Promise<number[]> {
   return ids;
 }
 
-/** Runs in the YTM page — works even when that tab is in the background. */
+/** Runs in the YTM page MAIN world so playerApi_ works in background tabs. */
 function ytmTransportInPage(action: TransportAction): boolean {
-  const click = (selectors: string[]): boolean => {
-    for (const sel of selectors) {
-      const el = document.querySelector<HTMLElement>(sel);
-      if (!el) continue;
-      el.click();
-      return true;
+  type PlayerApi = {
+    nextVideo?: () => void;
+    previousVideo?: () => void;
+    playVideo?: () => void;
+    pauseVideo?: () => void;
+    getPlayerState?: () => number;
+  };
+
+  const clickInBar = (selectors: string[]): boolean => {
+    const bar =
+      document.querySelector("ytmusic-player-bar") ??
+      document.querySelector("ytmusic-player-bar.ytmusic-app");
+    const roots: ParentNode[] = bar ? [bar, document] : [document];
+    for (const root of roots) {
+      for (const sel of selectors) {
+        const el = root.querySelector<HTMLElement>(sel);
+        if (!el) continue;
+        el.click();
+        return true;
+      }
     }
     return false;
+  };
+
+  const getApi = (): PlayerApi | null => {
+    const bar = document.querySelector(
+      "ytmusic-player-bar",
+    ) as (HTMLElement & { playerApi_?: PlayerApi }) | null;
+    if (bar?.playerApi_) return bar.playerApi_;
+
+    const player = document.querySelector(
+      "ytmusic-player",
+    ) as (HTMLElement & { playerApi_?: PlayerApi; player_?: PlayerApi }) | null;
+    if (player?.playerApi_) return player.playerApi_;
+    if (player?.player_) return player.player_;
+    return null;
   };
 
   const video =
@@ -238,25 +285,43 @@ function ytmTransportInPage(action: TransportAction): boolean {
     document.querySelector<HTMLVideoElement>("#song-video video") ??
     document.querySelector<HTMLVideoElement>("video");
 
+  const api = getApi();
+
   if (action === "toggle") {
-    // Prefer the media element — custom buttons often ignore clicks in background tabs
+    // HTMLMediaElement works while the tab is in the background
     if (video) {
       if (video.paused || video.ended) {
         void video.play().catch(() => {
-          click([
-            "#play-pause-button",
-            "ytmusic-play-button-renderer#play-pause-button",
-            '[aria-label="Play"]',
-            '[title="Play"]',
-          ]);
+          if (typeof api?.playVideo === "function") api.playVideo();
+          else {
+            clickInBar([
+              "#play-pause-button",
+              ".play-pause-button",
+              "ytmusic-play-button-renderer#play-pause-button",
+              '[aria-label="Play"]',
+              '[title="Play"]',
+            ]);
+          }
         });
       } else {
         video.pause();
       }
       return true;
     }
-    return click([
+    if (typeof api?.getPlayerState === "function") {
+      const state = api.getPlayerState();
+      if (state === 1 && typeof api.pauseVideo === "function") {
+        api.pauseVideo();
+        return true;
+      }
+      if (typeof api.playVideo === "function") {
+        api.playVideo();
+        return true;
+      }
+    }
+    return clickInBar([
       "#play-pause-button",
+      ".play-pause-button",
       "ytmusic-play-button-renderer#play-pause-button",
       '[aria-label="Play"]',
       '[aria-label="Pause"]',
@@ -266,19 +331,27 @@ function ytmTransportInPage(action: TransportAction): boolean {
   }
 
   if (action === "previous") {
-    return click([
+    if (typeof api?.previousVideo === "function") {
+      api.previousVideo();
+      return true;
+    }
+    return clickInBar([
+      ".previous-button",
       "#previous-button",
-      "tp-yt-paper-icon-button#previous-button",
-      "ytmusic-player-bar #previous-button",
+      "tp-yt-paper-icon-button.previous-button",
       '[aria-label="Previous"]',
       '[title="Previous"]',
     ]);
   }
 
-  return click([
+  if (typeof api?.nextVideo === "function") {
+    api.nextVideo();
+    return true;
+  }
+  return clickInBar([
+    ".next-button",
     "#next-button",
-    "tp-yt-paper-icon-button#next-button",
-    "ytmusic-player-bar #next-button",
+    "tp-yt-paper-icon-button.next-button",
     '[aria-label="Next"]',
     '[title="Next"]',
   ]);
@@ -291,12 +364,13 @@ async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
     try {
       const tab = await chrome.tabs.get(tabId);
       if (tab.discarded) {
-        // Revive without necessarily stealing focus first
         await chrome.tabs.update(tabId, { autoDiscardable: false });
       }
 
+      // MAIN world can reach YTM's playerApi_ (isolated world cannot)
       const results = await chrome.scripting.executeScript({
         target: { tabId },
+        world: "MAIN",
         func: ytmTransportInPage,
         args: [action],
       });
@@ -304,6 +378,17 @@ async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
       if (results[0]?.result) {
         return { ok: true };
       }
+    } catch {
+      // try next tab
+    }
+
+    // Fallback: content-script click path
+    try {
+      const res = (await chrome.tabs.sendMessage(tabId, {
+        type: "TRANSPORT_CMD",
+        action,
+      })) as { ok?: boolean } | undefined;
+      if (res?.ok) return { ok: true };
     } catch {
       // try next tab
     }

@@ -24,6 +24,8 @@ export interface NowPlaying {
   title: string;
   artist: string;
   albumArtUrl: string;
+  /** CSS `r, g, b` from album art for glass tint; null if unknown */
+  accentRgb: string | null;
   duration: number;
   currentTime: number;
   recordedAt: number;

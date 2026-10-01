@@ -86,12 +86,28 @@ function clickControl(selectors: string[]): boolean {
 }
 
 function applyTransport(action: TransportAction): boolean {
-  const video = findVideo();
+  type PlayerApi = {
+    nextVideo?: () => void;
+    previousVideo?: () => void;
+    playVideo?: () => void;
+    pauseVideo?: () => void;
+  };
+
+  const bar = document.querySelector(
+    "ytmusic-player-bar",
+  ) as (HTMLElement & { playerApi_?: PlayerApi }) | null;
+  // Isolated world usually cannot see playerApi_; still try, then click.
+  const api = bar?.playerApi_;
 
   if (action === "previous") {
+    if (typeof api?.previousVideo === "function") {
+      api.previousVideo();
+      return true;
+    }
     return clickControl([
+      ".previous-button",
       "#previous-button",
-      "tp-yt-paper-icon-button#previous-button",
+      "tp-yt-paper-icon-button.previous-button",
       "ytmusic-player-bar #previous-button",
       '[aria-label="Previous"]',
       '[title="Previous"]',
@@ -99,9 +115,14 @@ function applyTransport(action: TransportAction): boolean {
   }
 
   if (action === "next") {
+    if (typeof api?.nextVideo === "function") {
+      api.nextVideo();
+      return true;
+    }
     return clickControl([
+      ".next-button",
       "#next-button",
-      "tp-yt-paper-icon-button#next-button",
+      "tp-yt-paper-icon-button.next-button",
       "ytmusic-player-bar #next-button",
       '[aria-label="Next"]',
       '[title="Next"]',
@@ -109,6 +130,7 @@ function applyTransport(action: TransportAction): boolean {
   }
 
   // toggle — prefer <video> so it works while the tab is in the background
+  const video = findVideo();
   if (video) {
     if (video.paused || video.ended) {
       void video.play().catch(() => undefined);
@@ -120,6 +142,7 @@ function applyTransport(action: TransportAction): boolean {
 
   return clickControl([
     "#play-pause-button",
+    ".play-pause-button",
     "ytmusic-play-button-renderer#play-pause-button",
     "ytmusic-player-bar #play-pause-button",
     '[aria-label="Play"]',
