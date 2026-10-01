@@ -21,7 +21,8 @@ export async function getPrefs(): Promise<Prefs> {
     ),
     widgetLeft:
       typeof data.widgetLeft === "number" ? data.widgetLeft : null,
-    widgetTop: typeof data.widgetTop === "number" ? data.widgetTop : null,
+    widgetBottom:
+      typeof data.widgetBottom === "number" ? data.widgetBottom : null,
   };
 }
 
@@ -73,7 +74,8 @@ export async function getAppState(): Promise<{
       ),
       widgetLeft:
         typeof data.widgetLeft === "number" ? data.widgetLeft : null,
-      widgetTop: typeof data.widgetTop === "number" ? data.widgetTop : null,
+      widgetBottom:
+        typeof data.widgetBottom === "number" ? data.widgetBottom : null,
     },
     nowPlaying: (data.nowPlaying as NowPlaying | null) ?? null,
     lyrics: (data.lyrics as LyricsState | undefined) ?? EMPTY_LYRICS,

@@ -15,9 +15,10 @@ export interface Prefs {
   widgetClosed: boolean;
   widgetMinimized: boolean;
   transportEnabled: boolean;
-  /** Custom panel top-left in viewport px; null = default bottom-right */
+  /** Distance from viewport left to panel left; null = default */
   widgetLeft: number | null;
-  widgetTop: number | null;
+  /** Distance from viewport bottom to panel bottom; null = default */
+  widgetBottom: number | null;
 }
 
 export interface NowPlaying {
@@ -111,7 +112,7 @@ export const DEFAULT_PREFS: Prefs = {
   widgetMinimized: false,
   transportEnabled: false,
   widgetLeft: null,
-  widgetTop: null,
+  widgetBottom: null,
 };
 
 export const EMPTY_LYRICS: LyricsState = {

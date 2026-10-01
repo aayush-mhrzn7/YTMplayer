@@ -41,16 +41,16 @@ interface DragState {
   startX: number;
   startY: number;
   origLeft: number;
-  origTop: number;
+  origBottom: number;
 }
 
 let host: HTMLElement | null = null;
 let panel: HTMLElement | null = null;
-let peek: HTMLButtonElement | null = null;
 let artEl: HTMLImageElement | null = null;
 let titleEl: HTMLElement | null = null;
 let artistEl: HTMLElement | null = null;
 let playToggleEl: HTMLButtonElement | null = null;
+let minimizeEl: HTMLButtonElement | null = null;
 let transportEl: HTMLElement | null = null;
 let lyricsEl: HTMLElement | null = null;
 let prevEl: HTMLElement | null = null;
@@ -97,34 +97,32 @@ function ensureHost(): void {
         <button class="btn close" type="button" title="Close" aria-label="Close">×</button>
       </div>
     </div>
-    <div class="lyrics">
-      <div class="lyrics-view">
-        <div class="line prev empty"></div>
-        <div class="line active empty"></div>
-        <div class="line next empty"></div>
+    <div class="panel-body">
+      <div class="panel-body-inner">
+        <div class="lyrics">
+          <div class="lyrics-view">
+            <div class="line prev empty"></div>
+            <div class="line active empty"></div>
+            <div class="line next empty"></div>
+          </div>
+        </div>
+        <div class="transport" hidden>
+          <button class="btn transport-btn prev-track" type="button" title="Previous" aria-label="Previous">⏮</button>
+          <button class="btn transport-btn play-toggle" type="button" title="Play/Pause" aria-label="Play/Pause">▶</button>
+          <button class="btn transport-btn next-track" type="button" title="Next" aria-label="Next">⏭</button>
+        </div>
       </div>
-    </div>
-    <div class="transport" hidden>
-      <button class="btn transport-btn prev-track" type="button" title="Previous" aria-label="Previous">⏮</button>
-      <button class="btn transport-btn play-toggle" type="button" title="Play/Pause" aria-label="Play/Pause">▶</button>
-      <button class="btn transport-btn next-track" type="button" title="Next" aria-label="Next">⏭</button>
     </div>
   `;
 
-  peek = document.createElement("button");
-  peek.className = "peek";
-  peek.type = "button";
-  peek.textContent = "lyrics";
-  peek.setAttribute("title", "Show lyrics");
-
   shadow.appendChild(panel);
-  shadow.appendChild(peek);
   document.documentElement.appendChild(host);
 
   artEl = panel.querySelector(".art");
   titleEl = panel.querySelector(".title");
   artistEl = panel.querySelector(".artist");
   playToggleEl = panel.querySelector(".play-toggle");
+  minimizeEl = panel.querySelector(".minimize");
   transportEl = panel.querySelector(".transport");
   lyricsEl = panel.querySelector(".lyrics");
   prevEl = panel.querySelector(".line.prev");
@@ -133,8 +131,9 @@ function ensureHost(): void {
 
   const header = panel.querySelector(".header") as HTMLElement;
   header.addEventListener("pointerdown", onDragStart);
-  panel.querySelector(".minimize")?.addEventListener("click", () => {
-    void setPrefs({ widgetMinimized: true });
+  minimizeEl?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    void setPrefs({ widgetMinimized: !prefs.widgetMinimized });
   });
   panel.querySelector(".close")?.addEventListener("click", () => {
     void setPrefs({ widgetClosed: true });
@@ -154,9 +153,6 @@ function ensureHost(): void {
       renderTransport();
     }
     sendTransport("toggle");
-  });
-  peek.addEventListener("click", () => {
-    void setPrefs({ widgetMinimized: false });
   });
 }
 
@@ -182,17 +178,18 @@ function onDragStart(e: PointerEvent): void {
   if (target.closest(".btn") || target.closest(".transport")) return;
 
   const rect = panel.getBoundingClientRect();
+  const bottom = window.innerHeight - rect.bottom;
   panel.style.left = `${rect.left}px`;
-  panel.style.top = `${rect.top}px`;
+  panel.style.bottom = `${bottom}px`;
   panel.style.right = "auto";
-  panel.style.bottom = "auto";
+  panel.style.top = "auto";
 
   drag = {
     pointerId: e.pointerId,
     startX: e.clientX,
     startY: e.clientY,
     origLeft: rect.left,
-    origTop: rect.top,
+    origBottom: bottom,
   };
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   window.addEventListener("pointermove", onDragMove);
@@ -210,41 +207,50 @@ function onDragMove(e: PointerEvent): void {
     Math.max(8, drag.origLeft + dx),
     window.innerWidth - w - 8,
   );
-  const top = Math.min(
-    Math.max(8, drag.origTop + dy),
+  // Dragging down (dy > 0) decreases bottom inset
+  const bottom = Math.min(
+    Math.max(8, drag.origBottom - dy),
     window.innerHeight - h - 8,
   );
   panel.style.left = `${left}px`;
-  panel.style.top = `${top}px`;
+  panel.style.bottom = `${bottom}px`;
+  panel.style.top = "auto";
+  panel.style.right = "auto";
 }
 
-function positionKey(left: number | null, top: number | null): string {
-  return `${left ?? "d"}|${top ?? "d"}`;
+function positionKey(left: number | null, bottom: number | null): string {
+  return `${left ?? "d"}|${bottom ?? "d"}`;
 }
 
-function clampPanelPosition(left: number, top: number): { left: number; top: number } {
-  if (!panel) return { left, top };
+function clampPanelPosition(
+  left: number,
+  bottom: number,
+): { left: number; bottom: number } {
+  if (!panel) return { left, bottom };
   const w = panel.offsetWidth || 320;
   const h = panel.offsetHeight || 200;
   return {
     left: Math.min(Math.max(8, left), window.innerWidth - w - 8),
-    top: Math.min(Math.max(8, top), window.innerHeight - h - 8),
+    bottom: Math.min(Math.max(8, bottom), window.innerHeight - h - 8),
   };
 }
 
 function applyPanelPosition(): void {
   if (!panel || drag) return;
 
-  const key = positionKey(prefs.widgetLeft, prefs.widgetTop);
+  const key = positionKey(prefs.widgetLeft, prefs.widgetBottom);
   if (key === lastPosKey) return;
   lastPosKey = key;
 
-  if (prefs.widgetLeft != null && prefs.widgetTop != null) {
-    const { left, top } = clampPanelPosition(prefs.widgetLeft, prefs.widgetTop);
+  if (prefs.widgetLeft != null && prefs.widgetBottom != null) {
+    const { left, bottom } = clampPanelPosition(
+      prefs.widgetLeft,
+      prefs.widgetBottom,
+    );
     panel.style.left = `${left}px`;
-    panel.style.top = `${top}px`;
+    panel.style.bottom = `${bottom}px`;
     panel.style.right = "auto";
-    panel.style.bottom = "auto";
+    panel.style.top = "auto";
   } else {
     panel.style.left = "";
     panel.style.top = "";
@@ -263,10 +269,10 @@ function onDragEnd(e: PointerEvent): void {
   if (!panel) return;
   const rect = panel.getBoundingClientRect();
   const left = Math.round(rect.left);
-  const top = Math.round(rect.top);
-  prefs = { ...prefs, widgetLeft: left, widgetTop: top };
-  lastPosKey = positionKey(left, top);
-  setPrefs({ widgetLeft: left, widgetTop: top });
+  const bottom = Math.round(window.innerHeight - rect.bottom);
+  prefs = { ...prefs, widgetLeft: left, widgetBottom: bottom };
+  lastPosKey = positionKey(left, bottom);
+  setPrefs({ widgetLeft: left, widgetBottom: bottom });
 }
 
 function visible(): boolean {
@@ -275,30 +281,32 @@ function visible(): boolean {
 
 function applyVisibility(): void {
   ensureHost();
-  if (!host || !panel || !peek) return;
+  if (!host || !panel) return;
 
   if (!visible()) {
     host.style.pointerEvents = "none";
     panel.style.display = "none";
-    peek.classList.remove("visible");
     return;
   }
 
   host.style.pointerEvents = "none";
   panel.style.display = "flex";
-
-  if (prefs.widgetMinimized) {
-    panel.classList.add("minimized");
-    peek.classList.add("visible");
-    peek.style.pointerEvents = "auto";
-  } else {
-    panel.classList.remove("minimized");
-    peek.classList.remove("visible");
-    panel.style.pointerEvents = "auto";
-  }
-
+  panel.style.pointerEvents = "auto";
+  panel.classList.toggle("minimized", prefs.widgetMinimized);
+  renderMinimizeButton();
   renderTransportVisibility();
   applyPanelPosition();
+}
+
+function renderMinimizeButton(): void {
+  if (!minimizeEl) return;
+  const minimized = prefs.widgetMinimized;
+  minimizeEl.textContent = minimized ? "+" : "–";
+  minimizeEl.title = minimized ? "Maximize" : "Minimize";
+  minimizeEl.setAttribute(
+    "aria-label",
+    minimized ? "Maximize" : "Minimize",
+  );
 }
 
 function renderTransportVisibility(): void {
@@ -321,12 +329,12 @@ function renderHeader(): void {
   }
   applyAccent(nowPlaying.accentRgb);
   renderTransport();
+  renderMinimizeButton();
 }
 
 function applyAccent(rgb: string | null | undefined): void {
   const value = rgb?.trim() || "18, 18, 22";
   panel?.style.setProperty("--accent-rgb", value);
-  peek?.style.setProperty("--accent-rgb", value);
 }
 
 function renderTransport(): void {
@@ -457,13 +465,13 @@ function applyState(state: AppState): void {
   const prevKey = nowPlaying?.trackKey ?? "";
   const wasPlaying = nowPlaying?.playing;
   const prevLyricsToken = lastLyricsToken;
-  const prevPosKey = positionKey(prefs.widgetLeft, prefs.widgetTop);
+  const prevPosKey = positionKey(prefs.widgetLeft, prefs.widgetBottom);
 
   prefs = state.prefs;
   nowPlaying = state.nowPlaying;
   lyrics = state.lyrics;
   const posChanged =
-    positionKey(prefs.widgetLeft, prefs.widgetTop) !== prevPosKey;
+    positionKey(prefs.widgetLeft, prefs.widgetBottom) !== prevPosKey;
 
   const nextKey = nowPlaying?.trackKey ?? "";
   const trackChanged = nextKey !== prevKey || nextKey !== lastTrackKey;

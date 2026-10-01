@@ -32,7 +32,8 @@ function readPrefs(data: Record<string, unknown>): Prefs {
     ),
     widgetLeft:
       typeof data.widgetLeft === "number" ? data.widgetLeft : null,
-    widgetTop: typeof data.widgetTop === "number" ? data.widgetTop : null,
+    widgetBottom:
+      typeof data.widgetBottom === "number" ? data.widgetBottom : null,
   };
 }
 
