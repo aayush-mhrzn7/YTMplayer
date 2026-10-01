@@ -2,7 +2,6 @@
 	import type { DemoPlayer } from '$lib/demo/player.svelte';
 	import { formatTime } from '$lib/demo/tracks';
 	import Cover from './Cover.svelte';
-	import ArrowUpRight from 'phosphor-svelte/lib/ArrowUpRight';
 	import Minus from 'phosphor-svelte/lib/Minus';
 	import Pause from 'phosphor-svelte/lib/Pause';
 	import Play from 'phosphor-svelte/lib/Play';
@@ -84,7 +83,8 @@
 	} | null = null;
 
 	function onPointerDown(e: PointerEvent) {
-		if ((e.target as HTMLElement).closest('.btn') || !panel) return;
+		const target = e.target as HTMLElement;
+		if (target.closest('.btn') || target.closest('.art-btn') || !panel) return;
 		const parent = panel.offsetParent as HTMLElement | null;
 		if (variant === 'demo' && parent) {
 			const r = panel.getBoundingClientRect();
@@ -164,21 +164,24 @@
 			onpointerup={onPointerUp}
 			onpointercancel={onPointerUp}
 		>
-			<Cover {track} size="40px" />
+			{#if variant === 'demo'}
+				<button
+					class="art-btn"
+					type="button"
+					title="Open YouTube Music tab"
+					aria-label="Open YouTube Music tab"
+					onclick={() => (player.tab = 'ytm')}
+				>
+					<Cover {track} size="40px" />
+				</button>
+			{:else}
+				<Cover {track} size="40px" />
+			{/if}
 			<div class="meta">
 				<div class="title">{track.title}</div>
 				<div class="artist">{track.artist}</div>
 			</div>
 			<div class="actions">
-				{#if variant === 'demo'}
-					<button
-						class="btn focus-source"
-						type="button"
-						title="Open YouTube Music tab"
-						aria-label="Open YouTube Music tab"
-						onclick={() => (player.tab = 'ytm')}><ArrowUpRight size={16} weight="bold" /></button
-					>
-				{/if}
 				<button
 					class="btn minimize"
 					type="button"
@@ -377,6 +380,27 @@
 	.panel.minimized .header {
 		border-bottom-color: transparent;
 		padding-bottom: 10px;
+	}
+
+	.art-btn {
+		appearance: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		cursor: pointer;
+		border-radius: 8px;
+		flex-shrink: 0;
+		line-height: 0;
+	}
+
+	.art-btn:hover {
+		opacity: 0.9;
+	}
+
+	.art-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.55);
+		outline-offset: 2px;
 	}
 
 	.meta {
@@ -600,11 +624,6 @@
 	.btn:focus-visible {
 		outline: 2px solid rgba(255, 255, 255, 0.7);
 		outline-offset: 1px;
-	}
-
-	.btn.focus-source {
-		font-size: 15px;
-		font-weight: 500;
 	}
 
 	.btn.minimize {
