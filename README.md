@@ -50,4 +50,9 @@ Rebuilds on file changes. Reload the extension on `chrome://extensions` after ea
 
 ## License
 
-Private / personal use unless you add a license file.
+Private / personal use ONLY.
+
+## Example
+
+![YTM Lyrics Overlay](https://res.cloudinary.com/aayushmhrznn/image/upload/v1790834853/Screenshot_from_2026-10-01_11-50-52_othpup.png)
+
