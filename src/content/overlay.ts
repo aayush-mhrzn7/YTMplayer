@@ -53,6 +53,9 @@ let artistEl: HTMLElement | null = null;
 let playToggleEl: HTMLButtonElement | null = null;
 let minimizeEl: HTMLButtonElement | null = null;
 let transportEl: HTMLElement | null = null;
+let seekEl: HTMLInputElement | null = null;
+let timeCurrentEl: HTMLElement | null = null;
+let timeDurationEl: HTMLElement | null = null;
 let lyricsEl: HTMLElement | null = null;
 let prevEl: HTMLElement | null = null;
 let activeEl: HTMLElement | null = null;
@@ -68,6 +71,7 @@ let raf = 0;
 let drag: DragState | null = null;
 let swapTimer: number | null = null;
 let lastPosKey = "";
+let scrubbing = false;
 
 function ensureHost(): void {
   if (host && document.documentElement.contains(host)) return;
@@ -108,9 +112,26 @@ function ensureHost(): void {
           </div>
         </div>
         <div class="transport" hidden>
-          <button class="btn transport-btn prev-track" type="button" title="Previous" aria-label="Previous">⏮</button>
-          <button class="btn transport-btn play-toggle" type="button" title="Play/Pause" aria-label="Play/Pause">▶</button>
-          <button class="btn transport-btn next-track" type="button" title="Next" aria-label="Next">⏭</button>
+          <div class="seek-row">
+            <span class="time current">0:00</span>
+            <input
+              class="seek"
+              type="range"
+              min="0"
+              max="0"
+              value="0"
+              step="0.1"
+              aria-label="Seek"
+            />
+            <span class="time duration">0:00</span>
+          </div>
+          <div class="transport-controls">
+            <button class="btn transport-btn prev-track" type="button" title="Previous" aria-label="Previous">⏮</button>
+            <button class="btn transport-btn seek-back" type="button" title="Back 5 seconds" aria-label="Back 5 seconds">−5</button>
+            <button class="btn transport-btn play-toggle" type="button" title="Play/Pause" aria-label="Play/Pause">▶</button>
+            <button class="btn transport-btn seek-fwd" type="button" title="Forward 5 seconds" aria-label="Forward 5 seconds">+5</button>
+            <button class="btn transport-btn next-track" type="button" title="Next" aria-label="Next">⏭</button>
+          </div>
         </div>
       </div>
     </div>
@@ -125,6 +146,9 @@ function ensureHost(): void {
   playToggleEl = panel.querySelector(".play-toggle");
   minimizeEl = panel.querySelector(".minimize");
   transportEl = panel.querySelector(".transport");
+  seekEl = panel.querySelector(".seek");
+  timeCurrentEl = panel.querySelector(".time.current");
+  timeDurationEl = panel.querySelector(".time.duration");
   lyricsEl = panel.querySelector(".lyrics");
   prevEl = panel.querySelector(".line.prev");
   activeEl = panel.querySelector(".line.active");
@@ -152,6 +176,14 @@ function ensureHost(): void {
     e.stopPropagation();
     sendTransport("next");
   });
+  panel.querySelector(".seek-back")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    seekBy(-5);
+  });
+  panel.querySelector(".seek-fwd")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    seekBy(5);
+  });
   playToggleEl?.addEventListener("click", (e) => {
     e.stopPropagation();
     if (nowPlaying) {
@@ -160,6 +192,7 @@ function ensureHost(): void {
     }
     sendTransport("toggle");
   });
+  bindSeek();
 }
 
 function setPrefs(partial: Partial<Prefs>): void {
@@ -170,12 +203,106 @@ function setPrefs(partial: Partial<Prefs>): void {
   }
 }
 
-function sendTransport(action: "toggle" | "next" | "previous"): void {
+function sendTransport(
+  action: "toggle" | "next" | "previous" | "seek",
+  time?: number,
+): void {
   try {
-    void chrome.runtime.sendMessage({ type: "TRANSPORT", action });
+    void chrome.runtime.sendMessage({ type: "TRANSPORT", action, time });
   } catch {
     // Extension context invalidated
   }
+}
+
+function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const total = Math.floor(seconds);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function applyLocalSeek(t: number): void {
+  if (!Number.isFinite(t)) return;
+  const duration = nowPlaying?.duration ?? 0;
+  const clamped =
+    duration > 0 ? Math.max(0, Math.min(t, duration)) : Math.max(0, t);
+
+  if (nowPlaying) {
+    nowPlaying = {
+      ...nowPlaying,
+      currentTime: clamped,
+      recordedAt: Date.now(),
+    };
+    if (
+      lyrics.status === "ready" &&
+      lyrics.lines.length &&
+      prevEl &&
+      activeEl &&
+      nextEl
+    ) {
+      const idx = activeLineIndex(lyrics.lines, clamped);
+      lastActive = idx;
+      paintLines(idx, false);
+    }
+  }
+  renderProgress();
+  sendTransport("seek", clamped);
+}
+
+function seekBy(delta: number): void {
+  if (scrubbing) return;
+  applyLocalSeek(estimatedTime() + delta);
+}
+
+function bindSeek(): void {
+  if (!seekEl) return;
+
+  const onScrubStart = () => {
+    scrubbing = true;
+  };
+  const onScrubMove = () => {
+    if (!scrubbing || !seekEl) return;
+    const t = Number(seekEl.value);
+    if (timeCurrentEl) timeCurrentEl.textContent = formatTime(t);
+    paintSeekFill(t, Number(seekEl.max) || 0);
+  };
+  const onScrubEnd = () => {
+    if (!seekEl) return;
+    const t = Number(seekEl.value);
+    scrubbing = false;
+    applyLocalSeek(t);
+  };
+
+  seekEl.addEventListener("pointerdown", onScrubStart);
+  seekEl.addEventListener("input", onScrubMove);
+  seekEl.addEventListener("change", onScrubEnd);
+  seekEl.addEventListener("pointercancel", () => {
+    scrubbing = false;
+    renderProgress();
+  });
+}
+
+function paintSeekFill(current: number, duration: number): void {
+  if (!seekEl) return;
+  const pct =
+    duration > 0 ? Math.min(100, Math.max(0, (current / duration) * 100)) : 0;
+  seekEl.style.setProperty("--seek-pct", `${pct}%`);
+}
+
+function renderProgress(): void {
+  if (!seekEl || !timeCurrentEl || !timeDurationEl) return;
+  if (scrubbing) return;
+
+  const duration = nowPlaying?.duration ?? 0;
+  const current = duration > 0 ? Math.min(estimatedTime(), duration) : 0;
+
+  seekEl.max = String(duration > 0 ? duration : 0);
+  seekEl.value = String(current);
+  seekEl.disabled = !(duration > 0);
+  timeCurrentEl.textContent = formatTime(current);
+  timeDurationEl.textContent = formatTime(duration);
+  paintSeekFill(current, duration);
 }
 
 function onDragStart(e: PointerEvent): void {
@@ -366,6 +493,7 @@ function renderTransport(): void {
   playToggleEl.textContent = playing ? "⏸" : "▶";
   playToggleEl.title = playing ? "Pause" : "Play";
   playToggleEl.setAttribute("aria-label", playing ? "Pause" : "Play");
+  renderProgress();
 }
 
 function lyricsToken(state: LyricsState): string {
@@ -507,6 +635,9 @@ function estimatedTime(): number {
 function tick(): void {
   raf = requestAnimationFrame(tick);
   if (!visible() || prefs.widgetMinimized) return;
+
+  if (prefs.transportEnabled) renderProgress();
+
   if (lyrics.status !== "ready" || !lyrics.lines.length) return;
   if (!prevEl || !activeEl || !nextEl) return;
 
@@ -539,6 +670,7 @@ function applyState(state: AppState): void {
   const nextKey = nowPlaying?.trackKey ?? "";
   const trackChanged = nextKey !== prevKey || nextKey !== lastTrackKey;
   lastTrackKey = nextKey;
+  if (trackChanged) scrubbing = false;
 
   onTrackOrVisibility();
   if (posChanged) applyPanelPosition();

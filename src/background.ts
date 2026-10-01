@@ -241,13 +241,17 @@ async function findYtmTabIds(): Promise<number[]> {
 }
 
 /** Runs in the YTM page MAIN world so playerApi_ works in background tabs. */
-function ytmTransportInPage(action: TransportAction): boolean {
+function ytmTransportInPage(
+  action: TransportAction,
+  time?: number | null,
+): boolean {
   type PlayerApi = {
     nextVideo?: () => void;
     previousVideo?: () => void;
     playVideo?: () => void;
     pauseVideo?: () => void;
     getPlayerState?: () => number;
+    seekTo?: (seconds: number, allowSeekAhead?: boolean) => void;
   };
 
   const clickInBar = (selectors: string[]): boolean => {
@@ -286,6 +290,24 @@ function ytmTransportInPage(action: TransportAction): boolean {
     document.querySelector<HTMLVideoElement>("video");
 
   const api = getApi();
+
+  if (action === "seek") {
+    if (time == null || !Number.isFinite(time)) return false;
+    const target = Math.max(0, time);
+    if (video) {
+      const max =
+        video.duration && Number.isFinite(video.duration)
+          ? video.duration
+          : target;
+      video.currentTime = Math.min(target, max);
+      return true;
+    }
+    if (typeof api?.seekTo === "function") {
+      api.seekTo(target, true);
+      return true;
+    }
+    return false;
+  }
 
   if (action === "toggle") {
     // HTMLMediaElement works while the tab is in the background
@@ -357,7 +379,10 @@ function ytmTransportInPage(action: TransportAction): boolean {
   ]);
 }
 
-async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
+async function onTransport(
+  action: TransportAction,
+  time?: number,
+): Promise<{ ok: boolean }> {
   const tabIds = await findYtmTabIds();
 
   for (const tabId of tabIds) {
@@ -372,7 +397,7 @@ async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
         target: { tabId },
         world: "MAIN",
         func: ytmTransportInPage,
-        args: [action],
+        args: [action, time ?? null],
       });
 
       if (results[0]?.result) {
@@ -387,6 +412,7 @@ async function onTransport(action: TransportAction): Promise<{ ok: boolean }> {
       const res = (await chrome.tabs.sendMessage(tabId, {
         type: "TRANSPORT_CMD",
         action,
+        time,
       })) as { ok?: boolean } | undefined;
       if (res?.ok) return { ok: true };
     } catch {
@@ -508,7 +534,7 @@ chrome.runtime.onMessage.addListener(
       }
 
       if (message.type === "TRANSPORT") {
-        return onTransport(message.action);
+        return onTransport(message.action, message.time);
       }
 
       const tabId = sender.tab?.id;

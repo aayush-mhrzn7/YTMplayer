@@ -65,16 +65,20 @@ export type PlaybackMessage = {
   updatedAt: number;
 };
 
-export type TransportAction = "toggle" | "next" | "previous";
+export type TransportAction = "toggle" | "next" | "previous" | "seek";
 
 export type TransportMessage = {
   type: "TRANSPORT";
   action: TransportAction;
+  /** Absolute seconds; required when action is "seek" */
+  time?: number;
 };
 
 export type TransportCommandMessage = {
   type: "TRANSPORT_CMD";
   action: TransportAction;
+  /** Absolute seconds; required when action is "seek" */
+  time?: number;
 };
 
 export type GetStateMessage = {
@@ -113,7 +117,7 @@ export const DEFAULT_PREFS: Prefs = {
   widgetClosed: false,
   widgetMinimized: false,
   minimizePinned: false,
-  transportEnabled: false,
+  transportEnabled: true,
   widgetLeft: null,
   widgetBottom: null,
 };

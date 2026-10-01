@@ -85,7 +85,7 @@ function clickControl(selectors: string[]): boolean {
   return false;
 }
 
-function applyTransport(action: TransportAction): boolean {
+function applyTransport(action: TransportAction, time?: number): boolean {
   type PlayerApi = {
     nextVideo?: () => void;
     previousVideo?: () => void;
@@ -98,6 +98,15 @@ function applyTransport(action: TransportAction): boolean {
   ) as (HTMLElement & { playerApi_?: PlayerApi }) | null;
   // Isolated world usually cannot see playerApi_; still try, then click.
   const api = bar?.playerApi_;
+  const video = findVideo();
+
+  if (action === "seek") {
+    if (!video || time == null || !Number.isFinite(time)) return false;
+    const max =
+      video.duration && Number.isFinite(video.duration) ? video.duration : time;
+    video.currentTime = Math.max(0, Math.min(time, max));
+    return true;
+  }
 
   if (action === "previous") {
     if (typeof api?.previousVideo === "function") {
@@ -130,7 +139,6 @@ function applyTransport(action: TransportAction): boolean {
   }
 
   // toggle — prefer <video> so it works while the tab is in the background
-  const video = findVideo();
   if (video) {
     if (video.paused || video.ended) {
       void video.play().catch(() => undefined);
@@ -303,7 +311,7 @@ if (claimInjection()) {
   chrome.runtime.onMessage.addListener(
     (message: TransportCommandMessage, _sender, sendResponse) => {
       if (message?.type !== "TRANSPORT_CMD") return false;
-      const ok = applyTransport(message.action);
+      const ok = applyTransport(message.action, message.time);
       window.setTimeout(() => poll(true), 120);
       sendResponse({ ok });
       return false;

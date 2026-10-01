@@ -115,9 +115,8 @@
 
 .transport {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px 12px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -126,11 +125,107 @@
   display: none;
 }
 
+.seek-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.time {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(242, 242, 244, 0.55);
+  min-width: 2.4em;
+  flex-shrink: 0;
+}
+
+.time.duration {
+  text-align: right;
+}
+
+.seek {
+  --seek-pct: 0%;
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.seek:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.seek::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.85) var(--seek-pct),
+    rgba(255, 255, 255, 0.18) var(--seek-pct),
+    rgba(255, 255, 255, 0.18) 100%
+  );
+}
+
+.seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border: none;
+}
+
+.seek::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.seek::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.seek::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border: none;
+}
+
+.transport-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .transport-btn {
   width: 36px;
   height: 36px;
   font-size: 16px;
   color: rgba(242, 242, 244, 0.9);
+}
+
+.transport-btn.seek-back,
+.transport-btn.seek-fwd {
+  width: 34px;
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: rgba(242, 242, 244, 0.75);
 }
 
 .transport-btn.play-toggle {
