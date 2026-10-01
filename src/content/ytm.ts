@@ -428,16 +428,16 @@ function ensureBarButtonStyles(): void {
 }
 
 function openOverlayFromBar(): void {
+  const prefs = {
+    enabled: true,
+    widgetClosed: false,
+    widgetMinimized: false,
+    minimizePinned: false,
+  };
+  // Storage write is reliable even if the service worker is asleep
+  void chrome.storage.local.set(prefs);
   try {
-    void chrome.runtime.sendMessage({
-      type: "SET_PREFS",
-      prefs: {
-        enabled: true,
-        widgetClosed: false,
-        widgetMinimized: false,
-        minimizePinned: false,
-      },
-    });
+    void chrome.runtime.sendMessage({ type: "SET_PREFS", prefs });
   } catch {
     // Extension context invalidated
   }
@@ -470,11 +470,14 @@ function ensureBarButton(): void {
   img.height = 22;
   btn.appendChild(img);
 
-  btn.addEventListener("click", (e) => {
+  const onOpen = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     openOverlayFromBar();
-  });
+  };
+  btn.addEventListener("pointerdown", onOpen, true);
+  btn.addEventListener("click", onOpen, true);
 
   host.insertBefore(btn, host.firstChild);
 }

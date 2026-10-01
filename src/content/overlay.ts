@@ -172,7 +172,13 @@ function ensureHost(): void {
     });
   });
   panel.querySelector(".close")?.addEventListener("click", () => {
-    void setPrefs({ widgetClosed: true });
+    // Close = turn overlay off (popup checkbox unchecks via storage)
+    void setPrefs({
+      enabled: false,
+      widgetClosed: false,
+      widgetMinimized: false,
+      minimizePinned: false,
+    });
   });
   panel.querySelector(".prev-track")?.addEventListener("click", (e) => {
     e.stopPropagation();

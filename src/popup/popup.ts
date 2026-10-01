@@ -9,7 +9,6 @@ const enabled = document.getElementById("enabled") as HTMLInputElement;
 const transportEnabled = document.getElementById(
   "transportEnabled",
 ) as HTMLInputElement;
-const showBtn = document.getElementById("show") as HTMLButtonElement;
 
 function statusText(np: NowPlaying | null, lyrics: LyricsState): string {
   if (!np?.title) return "No track";
@@ -75,23 +74,22 @@ async function render(): Promise<void> {
 }
 
 enabled.addEventListener("change", () => {
-  void chrome.storage.local.set({ enabled: enabled.checked });
+  if (enabled.checked) {
+    void chrome.storage.local.set({
+      enabled: true,
+      widgetClosed: false,
+      widgetMinimized: false,
+      minimizePinned: false,
+    });
+  } else {
+    void chrome.storage.local.set({ enabled: false });
+  }
 });
 
 transportEnabled.addEventListener("change", () => {
   void chrome.storage.local.set({
     transportEnabled: transportEnabled.checked,
   });
-});
-
-showBtn.addEventListener("click", () => {
-  void chrome.storage.local.set({
-    widgetClosed: false,
-    widgetMinimized: false,
-    minimizePinned: false,
-    enabled: true,
-  });
-  enabled.checked = true;
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
