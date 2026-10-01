@@ -11,7 +11,7 @@
 	<div class="wrap">
 		<div class="footer-top">
 			<div class="footer-brand">
-				<img class="footer-logo" src="/icons/lyriq-logo.png" alt="Lyriq" width="128" height="32" />
+				<img class="footer-logo" src="/icons/lyriq-logo.webp" alt="Lyriq" width="128" height="32" />
 				<p class="footer-about">
 					Synced lyrics for YouTube Music, on top of whatever you're reading. Built for Chrome and
 					Chromium.

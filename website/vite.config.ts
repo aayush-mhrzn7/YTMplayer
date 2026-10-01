@@ -12,7 +12,10 @@ export default defineConfig({
 			},
 
 			// Single prerendered page; deploy the `build/` folder to any static host.
-			adapter: adapter()
+			adapter: adapter(),
+
+			// The CSS is small (~10 KB), so inline it into the HTML instead of blocking first paint
+			inlineStyleThreshold: Infinity
 		})
 	]
 });

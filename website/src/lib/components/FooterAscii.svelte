@@ -262,16 +262,33 @@
 		canvas.addEventListener('pointercancel', onLeave);
 		canvas.addEventListener('pointerdown', onDown);
 
-		// Idle drift runs only while the footer is visible
-		const io = new IntersectionObserver(([entry]) => {
-			onScreen = entry.isIntersecting && !reduce.matches;
-			if (onScreen) wake();
-		});
+		// Build the art only when the footer gets close (it's at the very bottom, so this keeps it
+		// out of the page's start-up work), and run the idle drift only while it's visible
+		let built = false;
+		const io = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting && !built) {
+					built = true;
+					// Söhne must be loaded before the word is sampled, or the fallback font gets drawn
+					Promise.all([
+						document.fonts.load(`700 100px sohne`),
+						document.fonts.load(`500 12px 'sohne mono'`)
+					])
+						.catch(() => {})
+						.finally(build);
+				}
+				const visible = entry.intersectionRatio > 0;
+				onScreen = visible && !reduce.matches;
+				if (onScreen) wake();
+			},
+			{ rootMargin: '300px 0px', threshold: [0, 0.01] }
+		);
 		io.observe(wrap);
 
 		// Rebuild on resize; redraw when the theme changes so colours follow it
 		let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 		const ro = new ResizeObserver(() => {
+			if (!built) return;
 			clearTimeout(resizeTimer);
 			resizeTimer = setTimeout(build, 80);
 		});
@@ -291,14 +308,6 @@
 			draw();
 		};
 		scheme.addEventListener('change', onScheme);
-
-		// Söhne must be loaded before the word is sampled, or the fallback font gets drawn
-		Promise.all([
-			document.fonts.load(`700 100px sohne`),
-			document.fonts.load(`500 12px 'sohne mono'`)
-		])
-			.catch(() => {})
-			.finally(build);
 
 		return () => {
 			cancelAnimationFrame(raf);

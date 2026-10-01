@@ -344,11 +344,17 @@ npm run build</code></pre>
 		width: min(340px, calc(100% - 32px));
 	}
 
-	/* One load moment: the three lines arrive in order, the way the widget swaps lines */
+	/*
+	 * One load moment: the lines settle into place in order, the way the widget swaps lines.
+	 * The text only slides (never starts invisible) so the headline is painted, and counted,
+	 * in the very first frame. The preview beside it fades in as well.
+	 */
 	@media (prefers-reduced-motion: no-preference) {
-		.hero-copy > *,
-		.hero-stage {
+		.hero-copy > * {
 			animation: line-in 600ms var(--ease-out) both;
+		}
+		.hero-stage {
+			animation: stage-in 600ms var(--ease-out) both;
 		}
 		.hero-copy > :nth-child(2) {
 			animation-delay: 60ms;
@@ -365,6 +371,12 @@ npm run build</code></pre>
 	}
 
 	@keyframes line-in {
+		from {
+			transform: translateY(8px);
+		}
+	}
+
+	@keyframes stage-in {
 		from {
 			opacity: 0;
 			transform: translateY(8px);

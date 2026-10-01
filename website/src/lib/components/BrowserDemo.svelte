@@ -16,6 +16,26 @@
 	let { player }: { player: DemoPlayer } = $props();
 
 	let popupWrap: HTMLDivElement | undefined = $state();
+	let browserEl: HTMLDivElement | undefined = $state();
+
+	// The page inside the browser (player, sample sites, widget) is far below the first screen.
+	// Mount it just before it scrolls into view so it doesn't add to the page's start-up work.
+	// The viewport has a fixed height, so nothing shifts when it appears.
+	let live = $state(false);
+	$effect(() => {
+		if (!browserEl || live) return;
+		const io = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					live = true;
+					io.disconnect();
+				}
+			},
+			{ rootMargin: '400px 0px' }
+		);
+		io.observe(browserEl);
+		return () => io.disconnect();
+	});
 
 	const tabs = [
 		{ id: 'ytm', label: 'YouTube Music', url: 'music.youtube.com/watch' },
@@ -52,7 +72,7 @@
 	onresize={() => (player.pos = null)}
 />
 
-<div class="browser">
+<div class="browser" bind:this={browserEl}>
 	<div class="tabstrip" role="tablist" aria-label="Demo browser tabs">
 		<span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
 		{#each tabs as t (t.id)}
@@ -107,16 +127,18 @@
 	</div>
 
 	<div class="viewport" id="demo-viewport" role="tabpanel">
-		{#if player.tab === 'ytm'}
-			<MusicPlayer {player} />
-		{:else if player.tab === 'docs'}
-			<SampleDocs />
-		{:else if player.tab === 'mail'}
-			<SampleMail />
-		{:else}
-			<SampleSite />
+		{#if live}
+			{#if player.tab === 'ytm'}
+				<MusicPlayer {player} />
+			{:else if player.tab === 'docs'}
+				<SampleDocs />
+			{:else if player.tab === 'mail'}
+				<SampleMail />
+			{:else}
+				<SampleSite />
+			{/if}
+			<LyriqWidget {player} />
 		{/if}
-		<LyriqWidget {player} />
 	</div>
 </div>
 
@@ -339,8 +361,14 @@
 		.tab[aria-selected='false'] {
 			flex: 0 0 auto;
 		}
+		/* Hidden visually, but still read out, so each tab keeps its name for screen readers */
 		.tab[aria-selected='false'] .tab-label {
-			display: none;
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
 		}
 		.new-tab {
 			display: none;

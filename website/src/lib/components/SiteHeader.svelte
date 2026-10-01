@@ -56,7 +56,7 @@
 <header class="nav" class:hidden={navHidden}>
 	<div class="wrap nav-inner">
 		<a href="/" class="logo" aria-label="Lyriq home">
-			<img src="/icons/lyriq-logo.png" alt="Lyriq" width="112" height="28" />
+			<img src="/icons/lyriq-logo.webp" alt="Lyriq" width="112" height="28" />
 		</a>
 		<nav aria-label="Primary">
 			<a href="/#how">How it works</a>
