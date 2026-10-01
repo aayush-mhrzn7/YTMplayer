@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Plus from 'phosphor-svelte/lib/Plus';
-
 	const faqs = [
 		{
 			q: 'Does the YouTube Music tab need to stay open?',
@@ -46,7 +44,7 @@
 			<details name="faq" open={i === 0}>
 				<summary>
 					<span>{f.q}</span>
-					<span class="toggle" aria-hidden="true"><Plus size={18} weight="bold" /></span>
+					<span class="toggle" aria-hidden="true"></span>
 				</summary>
 				<p>{f.a}</p>
 			</details>
@@ -104,6 +102,21 @@
 		box-shadow: inset 0 0 0 1.5px var(--line);
 		color: var(--text-2);
 		transition: transform 200ms var(--ease-out);
+	}
+
+	/* A plus drawn with two bars (no icon needed); it turns into a cross when open */
+	.toggle::before,
+	.toggle::after {
+		content: '';
+		grid-area: 1 / 1;
+		width: 12px;
+		height: 2px;
+		border-radius: 2px;
+		background: currentColor;
+	}
+
+	.toggle::after {
+		transform: rotate(90deg);
 	}
 
 	/* The plus turns into a cross: one control that shows its state */

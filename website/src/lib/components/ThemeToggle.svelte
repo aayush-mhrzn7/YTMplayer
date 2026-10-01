@@ -10,6 +10,14 @@
 		return matchMedia('(prefers-color-scheme: dark)').matches;
 	}
 
+	function savedChoice() {
+		try {
+			return localStorage.getItem(KEY);
+		} catch {
+			return null;
+		}
+	}
+
 	onMount(() => {
 		const root = document.documentElement;
 		dark = root.dataset.theme ? root.dataset.theme === 'dark' : systemDark();
@@ -17,7 +25,9 @@
 		// Follow the system while the viewer hasn't picked a theme
 		const mq = matchMedia('(prefers-color-scheme: dark)');
 		const onChange = () => {
-			if (!root.dataset.theme) dark = mq.matches;
+			if (savedChoice()) return;
+			dark = mq.matches;
+			root.dataset.theme = dark ? 'dark' : 'light';
 		};
 		mq.addEventListener('change', onChange);
 		return () => mq.removeEventListener('change', onChange);

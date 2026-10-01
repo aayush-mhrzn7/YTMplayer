@@ -16,26 +16,6 @@
 	let { player }: { player: DemoPlayer } = $props();
 
 	let popupWrap: HTMLDivElement | undefined = $state();
-	let browserEl: HTMLDivElement | undefined = $state();
-
-	// The page inside the browser (player, sample sites, widget) is far below the first screen.
-	// Mount it just before it scrolls into view so it doesn't add to the page's start-up work.
-	// The viewport has a fixed height, so nothing shifts when it appears.
-	let live = $state(false);
-	$effect(() => {
-		if (!browserEl || live) return;
-		const io = new IntersectionObserver(
-			([entry]) => {
-				if (entry.isIntersecting) {
-					live = true;
-					io.disconnect();
-				}
-			},
-			{ rootMargin: '400px 0px' }
-		);
-		io.observe(browserEl);
-		return () => io.disconnect();
-	});
 
 	const tabs = [
 		{ id: 'ytm', label: 'YouTube Music', url: 'music.youtube.com/watch' },
@@ -72,7 +52,7 @@
 	onresize={() => (player.pos = null)}
 />
 
-<div class="browser" bind:this={browserEl}>
+<div class="browser">
 	<div class="tabstrip" role="tablist" aria-label="Demo browser tabs">
 		<span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
 		{#each tabs as t (t.id)}
@@ -127,18 +107,16 @@
 	</div>
 
 	<div class="viewport" id="demo-viewport" role="tabpanel">
-		{#if live}
-			{#if player.tab === 'ytm'}
-				<MusicPlayer {player} />
-			{:else if player.tab === 'docs'}
-				<SampleDocs />
-			{:else if player.tab === 'mail'}
-				<SampleMail />
-			{:else}
-				<SampleSite />
-			{/if}
-			<LyriqWidget {player} />
+		{#if player.tab === 'ytm'}
+			<MusicPlayer {player} />
+		{:else if player.tab === 'docs'}
+			<SampleDocs />
+		{:else if player.tab === 'mail'}
+			<SampleMail />
+		{:else}
+			<SampleSite />
 		{/if}
+		<LyriqWidget {player} />
 	</div>
 </div>
 
@@ -237,13 +215,13 @@
 	.fav.docs {
 		background: #1f4fd6;
 		color: #fff;
-		font: 700 9px/1 var(--font);
+		font: 500 9px/1 var(--font);
 	}
 
 	.fav.mail {
 		background: #e8eaed;
 		color: #c5221f;
-		font: 800 9px/1 var(--font);
+		font: 500 9px/1 var(--font);
 	}
 
 	.new-tab {
@@ -261,7 +239,7 @@
 		border-radius: 3px;
 		background: #24543f;
 		color: #fff;
-		font: 600 10px/14px var(--font);
+		font: 500 10px/14px var(--font);
 		text-align: center;
 	}
 

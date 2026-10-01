@@ -12,7 +12,9 @@ export default defineConfig({
 			},
 
 			// Single prerendered page; deploy the `build/` folder to any static host.
-			adapter: adapter(),
+			// 404.html is served by static hosts (Vercel, Netlify, GitHub Pages) for unknown URLs,
+			// and renders src/routes/+error.svelte
+			adapter: adapter({ fallback: '404.html' }),
 
 			// The CSS is small (~10 KB), so inline it into the HTML instead of blocking first paint
 			inlineStyleThreshold: Infinity

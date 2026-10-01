@@ -6,17 +6,18 @@
 		<meta name="text-scale" content="scale" />
 		<meta name="theme-color" content="#ffffff" />
 		<script>
-			// Apply the saved theme before first paint so there's no flash
+			// Resolve the theme before first paint (saved choice, else the system setting) so the
+			// CSS only needs one set of dark colours and there's no flash
 			(function () {
+				var t = null;
 				try {
-					var t = localStorage.getItem('lyriq-theme');
-					if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+					t = localStorage.getItem('lyriq-theme');
 				} catch (e) {}
-				var dark =
-					document.documentElement.dataset.theme === 'dark' ||
-					(!document.documentElement.dataset.theme &&
-						matchMedia('(prefers-color-scheme: dark)').matches);
-				document.querySelector('meta[name="theme-color"]').content = dark ? '#000000' : '#ffffff';
+				if (t !== 'light' && t !== 'dark') {
+					t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+				document.documentElement.dataset.theme = t;
+				document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#000000' : '#ffffff';
 			})();
 		</script>
 		%sveltekit.head%

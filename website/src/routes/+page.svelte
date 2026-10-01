@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import GithubLogo from 'phosphor-svelte/lib/GithubLogo';
-	import BrowserDemo from '$lib/components/BrowserDemo.svelte';
+	import type BrowserDemoType from '$lib/components/BrowserDemo.svelte';
 	import LyriqWidget from '$lib/components/LyriqWidget.svelte';
-	import SampleSite from '$lib/components/SampleSite.svelte';
+	import type SampleSiteType from '$lib/components/SampleSite.svelte';
 	import Faq from '$lib/components/sections/Faq.svelte';
 	import HowSyncWorks from '$lib/components/sections/HowSyncWorks.svelte';
 	import Privacy from '$lib/components/sections/Privacy.svelte';
@@ -14,7 +14,36 @@
 	const player = new DemoPlayer();
 	let browserEl: HTMLDivElement | undefined = $state();
 
+	// The demo browser (sample player, sample sites, popup) is far below the first screen.
+	// Its code and CSS are fetched only when you scroll near it, which keeps them out of the
+	// first page load. A same-sized placeholder holds its space until then.
+	let BrowserDemo: typeof BrowserDemoType | null = $state(null);
+	$effect(() => {
+		if (!browserEl || BrowserDemo) return;
+		const io = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				io.disconnect();
+				import('$lib/components/BrowserDemo.svelte').then((m) => (BrowserDemo = m.default));
+			},
+			{ rootMargin: '600px 0px' }
+		);
+		io.observe(browserEl);
+		return () => io.disconnect();
+	});
+
+	// The article behind the hero widget is decoration (hidden from screen readers), so it's
+	// loaded after the page starts instead of adding to the first download
+	let HeroSite: typeof SampleSiteType | null = $state(null);
+
 	onMount(() => {
+		// Wait until the page has loaded and the browser is idle, so it never competes with first paint
+		const loadHeroSite = () =>
+			import('$lib/components/SampleSite.svelte').then((m) => (HeroSite = m.default));
+		const idle = () =>
+			'requestIdleCallback' in window ? requestIdleCallback(loadHeroSite) : setTimeout(loadHeroSite, 200);
+		if (document.readyState === 'complete') idle();
+		else addEventListener('load', idle, { once: true });
 		const stop = player.start();
 		player.select(0, true);
 		return stop;
@@ -144,7 +173,7 @@
 
 		<div class="hero-stage">
 			<div class="stage-page" aria-hidden="true" inert>
-				<SampleSite />
+				{#if HeroSite}<HeroSite />{/if}
 			</div>
 			<div class="stage-widget">
 				<LyriqWidget {player} variant="hero" />
@@ -193,7 +222,11 @@
 			</div>
 
 			<div class="demo-browser" bind:this={browserEl}>
-				<BrowserDemo {player} />
+				{#if BrowserDemo}
+					<BrowserDemo {player} />
+				{:else}
+					<div class="demo-placeholder" aria-hidden="true"></div>
+				{/if}
 				{#if !player.enabled}
 					<p class="closed-hint" role="status">
 						The overlay is off. Open the Lyriq popup and tick <strong>Overlay</strong> to bring it back.
@@ -334,6 +367,7 @@ npm run build</code></pre>
 			var(--shadow),
 			0 0 0 1px var(--line);
 		pointer-events: none;
+		background: var(--web-bg);
 	}
 
 	/* The widget sits over the page and slightly past its edge, like it does in a real tab */
@@ -480,6 +514,22 @@ npm run build</code></pre>
 	.demo-browser {
 		position: relative;
 		scroll-margin-top: 24px;
+	}
+
+	/* Same height as the demo browser: tab strip + toolbar + viewport */
+	.demo-placeholder {
+		height: calc(88px + clamp(480px, 62vh, 600px));
+		border-radius: var(--radius);
+		background: var(--chrome-bar);
+		box-shadow:
+			var(--shadow),
+			0 0 0 1px var(--line);
+	}
+
+	@media (max-width: 640px) {
+		.demo-placeholder {
+			height: calc(88px + 520px);
+		}
 	}
 
 	.closed-hint {
