@@ -42,6 +42,7 @@ interface DragState {
   startY: number;
   origLeft: number;
   origBottom: number;
+  moved: boolean;
 }
 
 let host: HTMLElement | null = null;
@@ -195,6 +196,7 @@ function onDragStart(e: PointerEvent): void {
     startY: e.clientY,
     origLeft: rect.left,
     origBottom: bottom,
+    moved: false,
   };
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   window.addEventListener("pointermove", onDragMove);
@@ -202,10 +204,16 @@ function onDragStart(e: PointerEvent): void {
   window.addEventListener("pointercancel", onDragEnd);
 }
 
+const DRAG_THRESHOLD_PX = 5;
+
 function onDragMove(e: PointerEvent): void {
   if (!drag || !panel || e.pointerId !== drag.pointerId) return;
   const dx = e.clientX - drag.startX;
   const dy = e.clientY - drag.startY;
+  if (!drag.moved && dx * dx + dy * dy < DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
+    return;
+  }
+  drag.moved = true;
   const w = panel.offsetWidth;
   const h = panel.offsetHeight;
   const left = Math.min(
@@ -266,12 +274,22 @@ function applyPanelPosition(): void {
 
 function onDragEnd(e: PointerEvent): void {
   if (!drag || e.pointerId !== drag.pointerId) return;
+  const wasClick = !drag.moved;
   drag = null;
   window.removeEventListener("pointermove", onDragMove);
   window.removeEventListener("pointerup", onDragEnd);
   window.removeEventListener("pointercancel", onDragEnd);
 
   if (!panel) return;
+
+  // Tap header while minimized → expand (same as maximize)
+  if (wasClick && prefs.widgetMinimized) {
+    prefs = { ...prefs, widgetMinimized: false, minimizePinned: false };
+    void setPrefs({ widgetMinimized: false, minimizePinned: false });
+    applyVisibility();
+    return;
+  }
+
   const rect = panel.getBoundingClientRect();
   const left = Math.round(rect.left);
   const bottom = Math.round(window.innerHeight - rect.bottom);
