@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YTM Lyrics</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <img class="cover" id="cover" alt="" width="220" height="220" />
+      <div class="info">
+        <div class="title" id="title">No track</div>
+        <div class="artist" id="artist">Play something on YouTube Music</div>
+        <div class="status" id="status">No track</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="enabled" />
+        <span>Enable overlay</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="transportEnabled" />
+        <span>Show playback controls</span>
+      </label>
+      <button type="button" class="show" id="show">Show widget</button>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
