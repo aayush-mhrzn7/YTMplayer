@@ -54,6 +54,37 @@ function textOf(el: Element | null): string {
   return el?.textContent?.replace(/\s+/g, " ").trim() ?? "";
 }
 
+/** YTM bar thumbs are ~60px; bump CDN size params for sharper overlay/popup art. */
+function upgradeAlbumArtUrl(url: string): string {
+  if (!url) return url;
+  try {
+    let next = url;
+    if (/=w\d+-h\d+/i.test(next)) {
+      next = next.replace(/=w\d+-h\d+/i, "=w544-h544");
+    } else if (/=s\d+/i.test(next)) {
+      next = next.replace(/=s\d+/i, "=s544");
+    } else if (/googleusercontent\.com|ggpht\.com|google\.com/.test(next)) {
+      next = next.includes("=")
+        ? next.replace(/=[^/]*$/i, "=w544-h544-l90-rj")
+        : `${next}=w544-h544-l90-rj`;
+    }
+    return next;
+  } catch {
+    return url;
+  }
+}
+
+function albumArtFromImg(img: HTMLImageElement | null): string {
+  if (!img) return "";
+  const raw =
+    img.currentSrc ||
+    img.src ||
+    img.getAttribute("src") ||
+    img.getAttribute("data-src") ||
+    "";
+  return upgradeAlbumArtUrl(raw);
+}
+
 function findVideo(): HTMLVideoElement | null {
   return (
     document.querySelector<HTMLVideoElement>("ytmusic-player video") ??
@@ -262,7 +293,7 @@ function readTrack(): TrackSnapshot | null {
   return {
     title,
     artist,
-    albumArtUrl: imgEl?.src ?? "",
+    albumArtUrl: albumArtFromImg(imgEl),
     duration,
     currentTime,
     playing,
@@ -353,15 +384,112 @@ function bindVideo(): void {
   video.addEventListener("loadedmetadata", onTransport);
 }
 
+const BAR_BTN_ID = "ytm-lyrics-overlay-bar-btn";
+const BAR_STYLE_ID = "ytm-lyrics-overlay-bar-style";
+
+function ensureBarButtonStyles(): void {
+  if (document.getElementById(BAR_STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = BAR_STYLE_ID;
+  style.textContent = `
+    #${BAR_BTN_ID} {
+      appearance: none;
+      border: none;
+      background: transparent;
+      height: 40px;
+      min-width: 40px;
+      margin: 0 4px;
+      padding: 0 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-grid;
+      place-items: center;
+      flex-shrink: 0;
+      opacity: 0.92;
+      transition: opacity 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+    #${BAR_BTN_ID}:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    #${BAR_BTN_ID}:active {
+      transform: scale(0.96);
+    }
+    #${BAR_BTN_ID} img {
+      height: 22px;
+      width: auto;
+      max-width: 118px;
+      display: block;
+      pointer-events: none;
+      object-fit: contain;
+    }
+  `;
+  document.documentElement.appendChild(style);
+}
+
+function openOverlayFromBar(): void {
+  try {
+    void chrome.runtime.sendMessage({
+      type: "SET_PREFS",
+      prefs: {
+        enabled: true,
+        widgetClosed: false,
+        widgetMinimized: false,
+        minimizePinned: false,
+      },
+    });
+  } catch {
+    // Extension context invalidated
+  }
+}
+
+function ensureBarButton(): void {
+  ensureBarButtonStyles();
+  const existing = document.getElementById(BAR_BTN_ID);
+  if (existing?.isConnected) return;
+
+  const bar = findPlayerBar();
+  if (!bar) return;
+
+  const host =
+    bar.querySelector(".right-controls-buttons") ??
+    bar.querySelector("#right-controls .right-controls-buttons") ??
+    bar.querySelector(".right-controls") ??
+    bar.querySelector("#right-controls");
+  if (!host) return;
+
+  const btn = document.createElement("button");
+  btn.id = BAR_BTN_ID;
+  btn.type = "button";
+  btn.title = "Open Lyriq";
+  btn.setAttribute("aria-label", "Open Lyriq");
+
+  const img = document.createElement("img");
+  img.src = chrome.runtime.getURL("icons/lyriq-bar.png");
+  img.alt = "Lyriq";
+  img.height = 22;
+  btn.appendChild(img);
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openOverlayFromBar();
+  });
+
+  host.insertBefore(btn, host.firstChild);
+}
+
 function start(): void {
   poll(true);
   bindVideo();
+  ensureBarButton();
 
   const observer = new MutationObserver(() => {
     if (mutateTimer != null) return;
     mutateTimer = window.setTimeout(() => {
       mutateTimer = null;
       bindVideo();
+      ensureBarButton();
       poll(false);
     }, 300);
   });
@@ -376,6 +504,7 @@ function start(): void {
     if (!snap) return;
     emitTrackIfChanged(snap);
     if (snap.playing) emitPlayback(snap);
+    ensureBarButton();
   }, 250);
 }
 

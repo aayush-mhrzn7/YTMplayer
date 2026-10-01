@@ -3,26 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>YTM Lyrics</title>
+    <title>Lyriq</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <main class="popup">
-      <img class="cover" id="cover" alt="" width="220" height="220" />
-      <div class="info">
-        <div class="title" id="title">No track</div>
-        <div class="artist" id="artist">Play something on YouTube Music</div>
-        <div class="status" id="status">No track</div>
+      <div class="art">
+        <img class="cover" id="cover" alt="" width="220" height="220" />
+        <div class="shade">
+          <div class="title" id="title">No track</div>
+          <div class="artist" id="artist">Play something on YouTube Music</div>
+          <div class="status" id="status">No track</div>
+        </div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="enabled" />
-        <span>Enable overlay</span>
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="transportEnabled" checked />
-        <span>Show playback controls</span>
-      </label>
-      <button type="button" class="show" id="show">Show widget</button>
+      <div class="footer">
+        <label class="toggle">
+          <input type="checkbox" id="enabled" />
+          <span>Overlay</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="transportEnabled" checked />
+          <span>Controls</span>
+        </label>
+        <button type="button" class="show" id="show">Show</button>
+      </div>
     </main>
     <script src="popup.js"></script>
   </body>

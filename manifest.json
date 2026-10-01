@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YTM Lyrics Overlay",
+  "name": "Lyriq",
   "version": "1.0.0",
-  "description": "Synced lyrics overlay while YouTube Music plays — works on any tab.",
+  "description": "Synced lyrics overlay for YouTube Music — glass mini player with playback controls.",
   "permissions": ["storage", "scripting", "tabs"],
   "host_permissions": [
     "https://music.youtube.com/*",
@@ -16,7 +16,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "YTM Lyrics",
+    "default_title": "Lyriq",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -30,6 +30,12 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["https://music.youtube.com/*"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["https://music.youtube.com/*"],
