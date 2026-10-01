@@ -228,6 +228,24 @@
   color: rgba(242, 242, 244, 0.75);
 }
 
+.transport-btn.shuffle,
+.transport-btn.repeat {
+  width: 32px;
+  font-size: 15px;
+  color: rgba(242, 242, 244, 0.55);
+}
+
+.transport-btn.shuffle.active,
+.transport-btn.repeat.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.transport-btn.repeat.repeat-one {
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .transport-btn.play-toggle {
   width: 44px;
   height: 44px;

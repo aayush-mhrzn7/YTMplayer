@@ -23,6 +23,8 @@ export interface Prefs {
   widgetBottom: number | null;
 }
 
+export type RepeatMode = "NONE" | "ALL" | "ONE";
+
 export interface NowPlaying {
   title: string;
   artist: string;
@@ -33,6 +35,8 @@ export interface NowPlaying {
   currentTime: number;
   recordedAt: number;
   playing: boolean;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
   trackKey: string;
   sourceTabId: number;
   updatedAt: number;
@@ -52,6 +56,8 @@ export type TrackUpdateMessage = {
   duration: number;
   currentTime: number;
   playing: boolean;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
   recordedAt: number;
   updatedAt: number;
 };
@@ -61,11 +67,19 @@ export type PlaybackMessage = {
   currentTime: number;
   duration: number;
   playing: boolean;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
   recordedAt: number;
   updatedAt: number;
 };
 
-export type TransportAction = "toggle" | "next" | "previous" | "seek";
+export type TransportAction =
+  | "toggle"
+  | "next"
+  | "previous"
+  | "seek"
+  | "shuffle"
+  | "repeat";
 
 export type TransportMessage = {
   type: "TRANSPORT";

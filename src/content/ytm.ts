@@ -1,5 +1,6 @@
 import type {
   ExtensionMessage,
+  RepeatMode,
   TransportAction,
   TransportCommandMessage,
 } from "../types";
@@ -37,6 +38,8 @@ interface TrackSnapshot {
   duration: number;
   currentTime: number;
   playing: boolean;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
 }
 
 function qs<T extends Element>(root: ParentNode, selectors: string[]): T | null {
@@ -64,6 +67,42 @@ function findPlayerBar(): Element | null {
     document.querySelector("ytmusic-player-bar") ??
     document.querySelector("ytmusic-player-bar.ytmusic-app")
   );
+}
+
+function parseRepeatMode(raw: string | null): RepeatMode {
+  const mode = (raw ?? "NONE").toUpperCase();
+  if (mode === "ALL" || mode === "ONE") return mode;
+  return "NONE";
+}
+
+function readShuffleRepeat(bar: Element | null): {
+  shuffle: boolean;
+  repeatMode: RepeatMode;
+} {
+  if (!bar) return { shuffle: false, repeatMode: "NONE" };
+  const repeatMode = parseRepeatMode(bar.getAttribute("repeat-mode"));
+
+  const shuffleBtn = qs<HTMLElement>(bar, [
+    ".shuffle",
+    "tp-yt-paper-icon-button.shuffle",
+    '[title*="Shuffle" i]',
+    '[aria-label*="Shuffle" i]',
+  ]);
+  let shuffle = false;
+  if (shuffleBtn) {
+    const pressed = shuffleBtn.getAttribute("aria-pressed");
+    const label = (
+      shuffleBtn.getAttribute("title") ||
+      shuffleBtn.getAttribute("aria-label") ||
+      ""
+    ).toLowerCase();
+    shuffle =
+      pressed === "true" ||
+      (label.includes("shuffle") && label.includes("on")) ||
+      shuffleBtn.classList.contains("style-primary");
+  }
+
+  return { shuffle, repeatMode };
 }
 
 function clickControl(selectors: string[]): boolean {
@@ -106,6 +145,26 @@ function applyTransport(action: TransportAction, time?: number): boolean {
       video.duration && Number.isFinite(video.duration) ? video.duration : time;
     video.currentTime = Math.max(0, Math.min(time, max));
     return true;
+  }
+
+  if (action === "shuffle") {
+    return clickControl([
+      ".shuffle",
+      "tp-yt-paper-icon-button.shuffle",
+      "ytmusic-player-bar .shuffle",
+      '[title*="Shuffle" i]',
+      '[aria-label*="Shuffle" i]',
+    ]);
+  }
+
+  if (action === "repeat") {
+    return clickControl([
+      ".repeat",
+      "tp-yt-paper-icon-button.repeat",
+      "ytmusic-player-bar .repeat",
+      '[title*="Repeat" i]',
+      '[aria-label*="Repeat" i]',
+    ]);
   }
 
   if (action === "previous") {
@@ -198,6 +257,7 @@ function readTrack(): TrackSnapshot | null {
       ? video.currentTime
       : 0;
   const playing = Boolean(video && !video.paused && !video.ended);
+  const { shuffle, repeatMode } = readShuffleRepeat(bar);
 
   return {
     title,
@@ -206,6 +266,8 @@ function readTrack(): TrackSnapshot | null {
     duration,
     currentTime,
     playing,
+    shuffle,
+    repeatMode,
   };
 }
 
@@ -219,6 +281,8 @@ function send(message: ExtensionMessage): void {
 
 let lastKey = "";
 let lastPlaying: boolean | null = null;
+let lastShuffle: boolean | null = null;
+let lastRepeat: string | null = null;
 let tickTimer: number | null = null;
 let mutateTimer: number | null = null;
 
@@ -235,20 +299,28 @@ function emitTrackIfChanged(snap: TrackSnapshot): void {
     duration: snap.duration,
     currentTime: snap.currentTime,
     playing: snap.playing,
+    shuffle: snap.shuffle,
+    repeatMode: snap.repeatMode,
     recordedAt: now,
     updatedAt: now,
   });
 }
 
 function emitPlayback(snap: TrackSnapshot, force = false): void {
-  if (!force && !snap.playing && lastPlaying === false) return;
+  const modeChanged =
+    lastShuffle !== snap.shuffle || lastRepeat !== snap.repeatMode;
+  if (!force && !snap.playing && lastPlaying === false && !modeChanged) return;
   lastPlaying = snap.playing;
+  lastShuffle = snap.shuffle;
+  lastRepeat = snap.repeatMode;
   const now = Date.now();
   send({
     type: "PLAYBACK",
     currentTime: snap.currentTime,
     duration: snap.duration,
     playing: snap.playing,
+    shuffle: snap.shuffle,
+    repeatMode: snap.repeatMode,
     recordedAt: now,
     updatedAt: now,
   });

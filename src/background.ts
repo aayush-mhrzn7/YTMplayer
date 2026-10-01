@@ -167,6 +167,8 @@ async function onTrackUpdate(
     currentTime: msg.currentTime,
     recordedAt: msg.recordedAt,
     playing: msg.playing,
+    shuffle: Boolean(msg.shuffle),
+    repeatMode: msg.repeatMode === "ALL" || msg.repeatMode === "ONE" ? msg.repeatMode : "NONE",
     trackKey: key,
     sourceTabId,
     updatedAt: msg.updatedAt,
@@ -211,17 +213,28 @@ async function onPlayback(
 
   const playingChanged = current.playing !== msg.playing;
   const seeked = Math.abs(msg.currentTime - current.currentTime) > 1.25;
+  const modeChanged =
+    current.shuffle !== Boolean(msg.shuffle) ||
+    current.repeatMode !==
+      (msg.repeatMode === "ALL" || msg.repeatMode === "ONE"
+        ? msg.repeatMode
+        : "NONE");
   const next: NowPlaying = {
     ...current,
     currentTime: msg.currentTime,
     duration: msg.duration > 0 ? msg.duration : current.duration,
     playing: msg.playing,
+    shuffle: Boolean(msg.shuffle),
+    repeatMode:
+      msg.repeatMode === "ALL" || msg.repeatMode === "ONE"
+        ? msg.repeatMode
+        : "NONE",
     recordedAt: msg.recordedAt,
     sourceTabId,
     updatedAt: msg.updatedAt,
   };
 
-  await persistNowPlaying(next, playingChanged || seeked);
+  await persistNowPlaying(next, playingChanged || seeked || modeChanged);
 }
 
 async function findYtmTabIds(): Promise<number[]> {
@@ -366,17 +379,41 @@ function ytmTransportInPage(
     ]);
   }
 
-  if (typeof api?.nextVideo === "function") {
-    api.nextVideo();
-    return true;
+  if (action === "shuffle") {
+    return clickInBar([
+      ".shuffle",
+      "tp-yt-paper-icon-button.shuffle",
+      "ytmusic-player-bar .shuffle",
+      '[title*="Shuffle" i]',
+      '[aria-label*="Shuffle" i]',
+    ]);
   }
-  return clickInBar([
-    ".next-button",
-    "#next-button",
-    "tp-yt-paper-icon-button.next-button",
-    '[aria-label="Next"]',
-    '[title="Next"]',
-  ]);
+
+  if (action === "repeat") {
+    return clickInBar([
+      ".repeat",
+      "tp-yt-paper-icon-button.repeat",
+      "ytmusic-player-bar .repeat",
+      '[title*="Repeat" i]',
+      '[aria-label*="Repeat" i]',
+    ]);
+  }
+
+  if (action === "next") {
+    if (typeof api?.nextVideo === "function") {
+      api.nextVideo();
+      return true;
+    }
+    return clickInBar([
+      ".next-button",
+      "#next-button",
+      "tp-yt-paper-icon-button.next-button",
+      '[aria-label="Next"]',
+      '[title="Next"]',
+    ]);
+  }
+
+  return false;
 }
 
 async function onTransport(

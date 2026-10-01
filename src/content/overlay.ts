@@ -52,6 +52,8 @@ let titleEl: HTMLElement | null = null;
 let artistEl: HTMLElement | null = null;
 let playToggleEl: HTMLButtonElement | null = null;
 let minimizeEl: HTMLButtonElement | null = null;
+let shuffleEl: HTMLButtonElement | null = null;
+let repeatEl: HTMLButtonElement | null = null;
 let transportEl: HTMLElement | null = null;
 let seekEl: HTMLInputElement | null = null;
 let timeCurrentEl: HTMLElement | null = null;
@@ -126,11 +128,13 @@ function ensureHost(): void {
             <span class="time duration">0:00</span>
           </div>
           <div class="transport-controls">
+            <button class="btn transport-btn shuffle" type="button" title="Shuffle" aria-label="Shuffle">⇄</button>
             <button class="btn transport-btn prev-track" type="button" title="Previous" aria-label="Previous">⏮</button>
             <button class="btn transport-btn seek-back" type="button" title="Back 5 seconds" aria-label="Back 5 seconds">−5</button>
             <button class="btn transport-btn play-toggle" type="button" title="Play/Pause" aria-label="Play/Pause">▶</button>
             <button class="btn transport-btn seek-fwd" type="button" title="Forward 5 seconds" aria-label="Forward 5 seconds">+5</button>
             <button class="btn transport-btn next-track" type="button" title="Next" aria-label="Next">⏭</button>
+            <button class="btn transport-btn repeat" type="button" title="Repeat" aria-label="Repeat">⟳</button>
           </div>
         </div>
       </div>
@@ -145,6 +149,8 @@ function ensureHost(): void {
   artistEl = panel.querySelector(".artist");
   playToggleEl = panel.querySelector(".play-toggle");
   minimizeEl = panel.querySelector(".minimize");
+  shuffleEl = panel.querySelector(".shuffle");
+  repeatEl = panel.querySelector(".repeat");
   transportEl = panel.querySelector(".transport");
   seekEl = panel.querySelector(".seek");
   timeCurrentEl = panel.querySelector(".time.current");
@@ -184,6 +190,14 @@ function ensureHost(): void {
     e.stopPropagation();
     seekBy(5);
   });
+  shuffleEl?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sendTransport("shuffle");
+  });
+  repeatEl?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sendTransport("repeat");
+  });
   playToggleEl?.addEventListener("click", (e) => {
     e.stopPropagation();
     if (nowPlaying) {
@@ -204,7 +218,7 @@ function setPrefs(partial: Partial<Prefs>): void {
 }
 
 function sendTransport(
-  action: "toggle" | "next" | "previous" | "seek",
+  action: "toggle" | "next" | "previous" | "seek" | "shuffle" | "repeat",
   time?: number,
 ): void {
   try {
@@ -493,6 +507,32 @@ function renderTransport(): void {
   playToggleEl.textContent = playing ? "⏸" : "▶";
   playToggleEl.title = playing ? "Pause" : "Play";
   playToggleEl.setAttribute("aria-label", playing ? "Pause" : "Play");
+
+  const shuffleOn = Boolean(nowPlaying?.shuffle);
+  if (shuffleEl) {
+    shuffleEl.classList.toggle("active", shuffleOn);
+    shuffleEl.title = shuffleOn ? "Shuffle on" : "Shuffle off";
+    shuffleEl.setAttribute(
+      "aria-label",
+      shuffleOn ? "Shuffle on" : "Shuffle off",
+    );
+  }
+
+  const mode = nowPlaying?.repeatMode ?? "NONE";
+  if (repeatEl) {
+    repeatEl.classList.toggle("active", mode !== "NONE");
+    repeatEl.classList.toggle("repeat-one", mode === "ONE");
+    repeatEl.textContent = mode === "ONE" ? "➀" : "⟳";
+    const label =
+      mode === "ALL"
+        ? "Repeat all"
+        : mode === "ONE"
+          ? "Repeat one"
+          : "Repeat off";
+    repeatEl.title = label;
+    repeatEl.setAttribute("aria-label", label);
+  }
+
   renderProgress();
 }
 
