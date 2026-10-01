@@ -2,7 +2,7 @@ import { TRACKS, activeLineIndex, type Track } from './tracks';
 
 export type RepeatMode = 'NONE' | 'ALL' | 'ONE';
 export type LyricsStatus = 'loading' | 'ready' | 'instrumental';
-export type DemoTab = 'ytm' | 'site';
+export type DemoTab = 'ytm' | 'site' | 'docs' | 'mail';
 
 /**
  * A simulated YouTube Music session plus the extension's prefs.

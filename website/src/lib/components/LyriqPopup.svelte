@@ -76,7 +76,7 @@
 
 	.title {
 		font-size: 12px;
-		font-weight: 650;
+		font-weight: 500;
 		line-height: 1.2;
 		white-space: nowrap;
 		overflow: hidden;

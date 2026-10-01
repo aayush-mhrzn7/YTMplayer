@@ -1,4 +1,83 @@
 /*
+ * Söhne (Klim Type Foundry), self-hosted from static/fonts/sohne.
+ * These are Klim's TEST files: fine for local work, but a web licence is needed before going live.
+ */
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-300.otf') format('opentype');
+	font-weight: 300;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-400.otf') format('opentype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-400-italic.otf') format('opentype');
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-500.otf') format('opentype');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-600.otf') format('opentype');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-700.otf') format('opentype');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne';
+	src: url('/fonts/sohne/sohne-800.otf') format('opentype');
+	font-weight: 800;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'sohne mono';
+	src: url('/fonts/sohne/sohne-mono-400.otf') format('opentype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Metric-adjusted stand-in shown while Söhne loads, so text doesn't jump when it swaps in */
+@font-face {
+	font-family: 'sohne Fallback';
+	src: local('Helvetica Neue'), local('Arial');
+	size-adjust: 102%;
+	ascent-override: 92%;
+	descent-override: 24%;
+	line-gap-override: 0%;
+}
+
+/*
  * Lyriq tokens. Neutral, Apple-style greys so the colour on the page comes from
  * the music: the widget takes its tint from the album art.
  * The logo blue is the one accent, kept for buttons and links.
@@ -30,13 +109,37 @@
 	--social-bg: #1d1d1f;
 	--social-fg: #f5f5f7;
 
+	/* Sample browser: its frame and the pages inside follow the theme too */
+	--chrome-strip: #dfe1e5;
+	--chrome-bar: #ffffff;
+	--chrome-tab-text: #5f6368;
+	--chrome-tab-active: #202124;
+	--chrome-hover: rgba(0, 0, 0, 0.05);
+	--chrome-icon: #5f6368;
+	--chrome-omni: #f1f3f4;
+	--chrome-omni-text: #202124;
+	--chrome-line: rgba(0, 0, 0, 0.08);
+	--web-bg: #ffffff;
+	--web-text: #1f2328;
+	--web-text-2: #3d434a;
+	--web-muted: #6b7075;
+	--web-line: #e8e9eb;
+	--web-soft: #f6f7f9;
+	--web-select: #e8eefc;
+	--web-select-text: #1f4fd6;
+	--web-header: rgba(255, 255, 255, 0.92);
+	--web-green: #2f6b4f;
+	--web-green-strong: #24543f;
+	--web-code-inline: #f0f2f5;
+
 	/* Motion: strong curves from the animate skill, one set for the whole site */
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-	--font: 'Instrument Sans Variable', 'Instrument Sans', system-ui, -apple-system, sans-serif;
-	--font-newsreader: 'Newsreader Variable', 'Newsreader', Georgia, 'Times New Roman', serif;
+	--font-sohne: 'sohne', 'sohne Fallback';
+	--font: var(--font-sohne), system-ui, sans-serif;
+	--font-mono: 'sohne mono', ui-monospace, 'SF Mono', Menlo, monospace;
 	--radius: 16px;
 	--radius-inner: 10px;
 	color-scheme: light;
@@ -65,6 +168,27 @@
 	--mark-stroke: rgba(255, 255, 255, 0.09);
 	--social-bg: rgba(245, 245, 247, 0.88);
 	--social-fg: #1d1d1f;
+	--chrome-strip: #202124;
+	--chrome-bar: #35363a;
+	--chrome-tab-text: rgba(255, 255, 255, 0.6);
+	--chrome-tab-active: #ffffff;
+	--chrome-hover: rgba(255, 255, 255, 0.06);
+	--chrome-icon: rgba(255, 255, 255, 0.5);
+	--chrome-omni: #202124;
+	--chrome-omni-text: rgba(255, 255, 255, 0.8);
+	--chrome-line: rgba(255, 255, 255, 0.06);
+	--web-bg: #18181b;
+	--web-text: #ececef;
+	--web-text-2: #c4c6cb;
+	--web-muted: #8b8f96;
+	--web-line: #2c2d31;
+	--web-soft: #1f2023;
+	--web-select: #23304f;
+	--web-select-text: #a9bcff;
+	--web-header: rgba(24, 24, 27, 0.92);
+	--web-green: #7cc5a0;
+	--web-green-strong: #8fd1ad;
+	--web-code-inline: #26272b;
 	color-scheme: dark;
 }
 
@@ -91,6 +215,27 @@
 		--mark-stroke: rgba(255, 255, 255, 0.09);
 		--social-bg: rgba(245, 245, 247, 0.88);
 		--social-fg: #1d1d1f;
+		--chrome-strip: #202124;
+		--chrome-bar: #35363a;
+		--chrome-tab-text: rgba(255, 255, 255, 0.6);
+		--chrome-tab-active: #ffffff;
+		--chrome-hover: rgba(255, 255, 255, 0.06);
+		--chrome-icon: rgba(255, 255, 255, 0.5);
+		--chrome-omni: #202124;
+		--chrome-omni-text: rgba(255, 255, 255, 0.8);
+		--chrome-line: rgba(255, 255, 255, 0.06);
+		--web-bg: #18181b;
+		--web-text: #ececef;
+		--web-text-2: #c4c6cb;
+		--web-muted: #8b8f96;
+		--web-line: #2c2d31;
+		--web-soft: #1f2023;
+		--web-select: #23304f;
+		--web-select-text: #a9bcff;
+		--web-header: rgba(24, 24, 27, 0.92);
+		--web-green: #7cc5a0;
+		--web-green-strong: #8fd1ad;
+		--web-code-inline: #26272b;
 		color-scheme: dark;
 	}
 }
@@ -144,24 +289,20 @@ a {
 }
 
 /*
- * Type. Tracking and leading change with size (tight on display, open on small text).
- * Instrument Sans narrows slightly at display sizes via its width axis instead of
- * squeezing letter-spacing, which is what made the old headline letters collide.
+ * Type, after sagea.space: Söhne at medium weight for headings with tight tracking,
+ * Buch (400) for body. Tracking tightens as size grows; body stays at 0.
  */
 .display {
-	font-weight: 650;
-	font-stretch: 92%;
-	letter-spacing: -0.02em;
-	line-height: 1.02;
+	font-weight: 500;
+	letter-spacing: -0.025em;
+	line-height: 1.08;
 }
 
-/* Newsreader italic is the "sung" voice: a whole line, set like a lyric */
+/* The "sung" voice: a whole line set like a lyric, in Söhne's own italic */
 .sung {
-	font-family: var(--font-newsreader);
 	font-style: italic;
 	font-weight: 400;
-	font-optical-sizing: auto;
-	letter-spacing: 0;
+	letter-spacing: -0.01em;
 }
 
 /* Colours ease between light and dark instead of snapping */

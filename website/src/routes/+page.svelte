@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import GithubLogo from 'phosphor-svelte/lib/GithubLogo';
+	import Globe from 'phosphor-svelte/lib/Globe';
+	import Heart from 'phosphor-svelte/lib/Heart';
+	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
 	import BrowserDemo from '$lib/components/BrowserDemo.svelte';
 	import LyriqWidget from '$lib/components/LyriqWidget.svelte';
 	import SampleSite from '$lib/components/SampleSite.svelte';
@@ -8,31 +11,54 @@
 	import { DemoPlayer } from '$lib/demo/player.svelte';
 
 	const REPO = 'https://github.com/aayush-mhrzn7/YTMplayer';
+	const PORTFOLIO = 'https://aayush-maharjan.vercel.app';
+	const LINKEDIN = 'https://www.linkedin.com/in/aayush-maharjan-47a017316/';
 
 	const player = new DemoPlayer();
 	let browserEl: HTMLDivElement | undefined = $state();
 
-	// Header hides while scrolling down, and comes back on scroll up or once scrolling stops
+	// Header hides while scrolling down, and comes back on scroll up or once scrolling stops.
+	// Small movements and the bounce past the top/bottom on phones are ignored, so it doesn't flicker.
+	const HIDE_AFTER = 24;
+	const SHOW_AFTER = 8;
 	let navHidden = $state(false);
 	let lastY = 0;
+	let travel = 0;
 	let ticking = false;
 	let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function settle() {
+		clearTimeout(settleTimer);
+		travel = 0;
+		navHidden = false;
+	}
 
 	function onScroll() {
 		if (ticking) return;
 		ticking = true;
 		requestAnimationFrame(() => {
 			ticking = false;
-			const y = window.scrollY;
-			const down = y > lastY;
+			const max = document.documentElement.scrollHeight - window.innerHeight;
+			// Clamp out iOS rubber-band overscroll, which reports y < 0 or y > max
+			const y = Math.min(Math.max(window.scrollY, 0), max);
+			const delta = y - lastY;
 			lastY = y;
-			clearTimeout(settleTimer);
-			if (y < 80 || !down) {
-				navHidden = false;
+			if (delta === 0) return;
+
+			if (y < 80) {
+				settle();
 				return;
 			}
-			navHidden = true;
-			settleTimer = setTimeout(() => (navHidden = false), 220);
+			// Count travel in one direction; a change of direction starts the count again
+			travel = Math.sign(delta) === Math.sign(travel) ? travel + delta : delta;
+			if (travel > HIDE_AFTER) navHidden = true;
+			else if (travel < -SHOW_AFTER) navHidden = false;
+
+			// Fallback for browsers without the scrollend event
+			if (!('onscrollend' in window)) {
+				clearTimeout(settleTimer);
+				settleTimer = setTimeout(settle, 250);
+			}
 		});
 	}
 
@@ -114,9 +140,10 @@
 		{
 			title: 'Every tab',
 			body: 'Music stays in one tab. The widget shows up on all the others.',
-			action: () => (player.tab === 'ytm' ? 'Go to the article' : 'Go to the player'),
+			action: () => 'Next tab',
 			run: () => {
-				player.tab = player.tab === 'ytm' ? 'site' : 'ytm';
+				const order = ['ytm', 'site', 'docs', 'mail'] as const;
+				player.tab = order[(order.indexOf(player.tab) + 1) % order.length];
 			}
 		},
 		{
@@ -138,7 +165,7 @@
 	/>
 </svelte:head>
 
-<svelte:window onscroll={onScroll} />
+<svelte:window onscroll={onScroll} onscrollend={settle} />
 
 {#snippet featureRow(f: Feature)}
 	<li class="feature">
@@ -328,10 +355,16 @@ npm run build</code></pre>
 				<p class="footer-info">
 					Lyrics provided by <a href="https://lrclib.net" target="_blank" rel="noreferrer">lrclib.net</a>
 				</p>
-				<h3 class="footer-head">Source</h3>
+				<h3 class="footer-head">Links</h3>
 				<div class="socials">
-					<a href={REPO} target="_blank" rel="noreferrer" aria-label="Lyriq on GitHub">
+					<a href={REPO} target="_blank" rel="noreferrer" aria-label="Lyriq on GitHub" title="GitHub">
 						<GithubLogo size={20} weight="fill" />
+					</a>
+					<a href={LINKEDIN} target="_blank" rel="noreferrer" aria-label="Aayush Maharjan on LinkedIn" title="LinkedIn">
+						<LinkedinLogo size={20} weight="fill" />
+					</a>
+					<a href={PORTFOLIO} target="_blank" rel="noreferrer" aria-label="Aayush Maharjan's portfolio" title="Portfolio">
+						<Globe size={20} weight="bold" />
 					</a>
 				</div>
 			</div>
@@ -350,18 +383,21 @@ npm run build</code></pre>
 					<ul>
 						<li><a href={REPO} target="_blank" rel="noreferrer">GitHub</a></li>
 						<li><a href="{REPO}/issues" target="_blank" rel="noreferrer">Report a problem</a></li>
-						<li><a href="https://lrclib.net" target="_blank" rel="noreferrer">lrclib.net</a></li>
-						<li><a href="https://music.youtube.com" target="_blank" rel="noreferrer">YouTube Music</a></li>
 					</ul>
 				</div>
 			</nav>
 		</div>
 
 		<div class="footer-bottom">
-			<p>Copyright ©{new Date().getFullYear()} Lyriq. All rights reserved.</p>
+			<p class="credit">
+				<span
+					>Made with <Heart size={14} weight="fill" class="heart" aria-label="love" /> by
+					<a class="credit-link" href={PORTFOLIO} target="_blank" rel="noreferrer">Aayush Maharjan</a></span
+				>
+				<span>Copyright ©{new Date().getFullYear()} Lyriq. All rights reserved.</span>
+			</p>
 			<p class="footer-legal">
 				<span>Personal use licence</span>
-				<span>Not affiliated with YouTube or Google</span>
 			</p>
 		</div>
 	</div>
@@ -391,6 +427,7 @@ npm run build</code></pre>
 		transition:
 			transform 250ms var(--ease-out),
 			opacity 200ms var(--ease-out);
+		will-change: transform;
 	}
 
 	/* Leaves upward and comes back down the same way */
@@ -462,7 +499,7 @@ npm run build</code></pre>
 		height: 48px;
 		padding: 0 24px;
 		border-radius: 999px;
-		font-weight: 600;
+		font-weight: 500;
 		font-size: 15px;
 		text-decoration: none;
 		white-space: nowrap;
@@ -529,6 +566,9 @@ npm run build</code></pre>
 	h1 {
 		margin: 0;
 		font-size: clamp(42px, 5vw, 64px);
+		font-weight: 500;
+		letter-spacing: -0.025em;
+		line-height: 1.05;
 		text-wrap: balance;
 	}
 
@@ -655,7 +695,7 @@ npm run build</code></pre>
 		border-radius: 999px;
 		box-shadow: inset 0 0 0 1.5px var(--line);
 		font-size: 14px;
-		font-weight: 600;
+		font-weight: 500;
 		font-variant-numeric: tabular-nums;
 		color: var(--text-2);
 	}
@@ -664,9 +704,9 @@ npm run build</code></pre>
 	.install-steps h3 {
 		margin: 3px 0 6px;
 		font-size: 19px;
-		font-weight: 600;
+		font-weight: 500;
 		line-height: 1.3;
-		letter-spacing: -0.01em;
+		letter-spacing: -0.015em;
 	}
 
 	.how-steps p,
@@ -728,7 +768,7 @@ npm run build</code></pre>
 		padding-bottom: 14px;
 		border-bottom: 1px solid var(--line);
 		font-size: 15px;
-		font-weight: 600;
+		font-weight: 500;
 		color: var(--muted);
 	}
 
@@ -742,7 +782,8 @@ npm run build</code></pre>
 	.feature h4 {
 		margin: 0;
 		font-size: 17px;
-		font-weight: 600;
+		font-weight: 500;
+		letter-spacing: -0.01em;
 	}
 
 	.feature p {
@@ -759,7 +800,7 @@ npm run build</code></pre>
 		padding: 9px 16px;
 		border-radius: 999px;
 		font-size: 14px;
-		font-weight: 600;
+		font-weight: 500;
 		color: var(--text);
 		box-shadow: inset 0 0 0 1.5px var(--chip-line);
 		cursor: pointer;
@@ -828,7 +869,7 @@ npm run build</code></pre>
 	}
 
 	code {
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--font-mono);
 		font-size: 0.9em;
 	}
 
@@ -894,7 +935,7 @@ npm run build</code></pre>
 	.footer-head {
 		margin: 0;
 		font-size: 16px;
-		font-weight: 600;
+		font-weight: 500;
 		color: var(--text);
 	}
 
@@ -952,24 +993,42 @@ npm run build</code></pre>
 		margin: 0;
 	}
 
+	.credit {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 20px;
+	}
+
+	.credit > span:first-child {
+		color: var(--text-2);
+	}
+
+	.credit :global(.heart) {
+		vertical-align: -2px;
+		color: #e5484d;
+	}
+
+	.footer .credit-link {
+		color: var(--text);
+		font-weight: 500;
+		text-decoration: underline;
+		text-decoration-color: var(--line);
+		text-underline-offset: 3px;
+	}
+
 	.footer-legal {
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
 	}
 
-	.footer-legal span + span {
-		margin-left: 14px;
-		padding-left: 14px;
-		border-left: 1px solid var(--line);
-	}
 
 	/* Big outlined wordmark, cropped by the bottom edge */
 	.footer-mark {
 		width: min(1200px, 100% - 32px);
 		margin: 64px auto 0;
 		font-size: clamp(100px, 27.5vw, 370px);
-		font-weight: 700;
+		font-weight: 500;
 		line-height: 0.78;
 		letter-spacing: 0.02em;
 		text-align: center;
@@ -1057,11 +1116,6 @@ npm run build</code></pre>
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 6px;
-		}
-		.footer-legal span + span {
-			margin-left: 0;
-			padding-left: 0;
-			border-left: none;
 		}
 	}
 </style>

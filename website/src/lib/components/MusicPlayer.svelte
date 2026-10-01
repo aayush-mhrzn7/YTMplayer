@@ -172,7 +172,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font-weight: 700;
+		font-weight: 500;
 		font-size: 17px;
 		letter-spacing: -0.02em;
 		padding: 0 10px 16px;
@@ -247,7 +247,7 @@
 	.queue h4 {
 		margin: 0 0 8px;
 		font-size: 15px;
-		font-weight: 600;
+		font-weight: 500;
 		color: rgba(255, 255, 255, 0.85);
 		padding-bottom: 10px;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -290,7 +290,7 @@
 
 	.row-title {
 		font-size: 13px;
-		font-weight: 600;
+		font-weight: 500;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;

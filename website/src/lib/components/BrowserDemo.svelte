@@ -3,7 +3,10 @@
 	import LyriqPopup from './LyriqPopup.svelte';
 	import LyriqWidget from './LyriqWidget.svelte';
 	import MusicPlayer from './MusicPlayer.svelte';
+	import SampleDocs from './SampleDocs.svelte';
+	import SampleMail from './SampleMail.svelte';
 	import SampleSite from './SampleSite.svelte';
+	import PlusIcon from 'phosphor-svelte/lib/Plus';
 	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
 	import CaretRight from 'phosphor-svelte/lib/CaretRight';
 	import Lock from 'phosphor-svelte/lib/Lock';
@@ -16,7 +19,9 @@
 
 	const tabs = [
 		{ id: 'ytm', label: 'YouTube Music', url: 'music.youtube.com/watch' },
-		{ id: 'site', label: 'Brew Guide: making coffee by hand', url: 'brewguide.example/pour-over' }
+		{ id: 'site', label: 'Brew Guide: making coffee by hand', url: 'brewguide.example/pour-over' },
+		{ id: 'docs', label: 'Webhooks | Tidepool Docs', url: 'docs.tidepool.example/guides/webhooks' },
+		{ id: 'mail', label: 'Inbox (2)', url: 'mail.example/inbox' }
 	] as const;
 
 	/**
@@ -60,12 +65,17 @@
 			>
 				{#if t.id === 'ytm'}
 					<span class="fav ytm" aria-hidden="true"></span>
+				{:else if t.id === 'site'}
+					<span class="fav letter site" aria-hidden="true">B</span>
+				{:else if t.id === 'docs'}
+					<span class="fav letter docs" aria-hidden="true">T</span>
 				{:else}
-					<span class="fav site" aria-hidden="true">B</span>
+					<span class="fav letter mail" aria-hidden="true">M</span>
 				{/if}
 				<span class="tab-label">{t.label}</span>
 			</button>
 		{/each}
+		<span class="new-tab" aria-hidden="true"><PlusIcon size={14} weight="bold" /></span>
 	</div>
 
 	<div class="toolbar">
@@ -99,6 +109,10 @@
 	<div class="viewport" id="demo-viewport" role="tabpanel">
 		{#if player.tab === 'ytm'}
 			<MusicPlayer {player} />
+		{:else if player.tab === 'docs'}
+			<SampleDocs />
+		{:else if player.tab === 'mail'}
+			<SampleMail />
 		{:else}
 			<SampleSite />
 		{/if}
@@ -110,7 +124,7 @@
 	.browser {
 		border-radius: 16px;
 		overflow: hidden;
-		background: #1d1d22;
+		background: var(--chrome-bar);
 		box-shadow:
 			var(--shadow),
 			0 0 0 1px var(--line);
@@ -122,7 +136,7 @@
 		align-items: flex-end;
 		gap: 2px;
 		padding: 8px 10px 0;
-		background: #2b2b31;
+		background: var(--chrome-strip);
 		min-width: 0;
 	}
 
@@ -157,12 +171,12 @@
 		padding: 8px 12px;
 		border-radius: 9px 9px 0 0;
 		font-size: 12px;
-		color: rgba(255, 255, 255, 0.6);
+		color: var(--chrome-tab-text);
 		cursor: pointer;
 	}
 
 	.tab:hover {
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--chrome-hover);
 	}
 
 	.tab:focus-visible {
@@ -171,8 +185,8 @@
 	}
 
 	.tab[aria-selected='true'] {
-		background: #1d1d22;
-		color: #fff;
+		background: var(--chrome-bar);
+		color: var(--chrome-tab-active);
 	}
 
 	.tab-label {
@@ -192,11 +206,40 @@
 		background: radial-gradient(circle, #fff 0 24%, #f03 25% 100%);
 	}
 
+	.fav.letter {
+		border-radius: 3px;
+		display: grid;
+		place-items: center;
+	}
+
+	.fav.docs {
+		background: #1f4fd6;
+		color: #fff;
+		font: 700 9px/1 var(--font);
+	}
+
+	.fav.mail {
+		background: #e8eaed;
+		color: #c5221f;
+		font: 800 9px/1 var(--font);
+	}
+
+	.new-tab {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 28px;
+		height: 28px;
+		margin: 0 0 4px 4px;
+		border-radius: 8px;
+		color: var(--chrome-icon);
+	}
+
 	.fav.site {
 		border-radius: 3px;
 		background: #24543f;
 		color: #fff;
-		font: 600 10px/14px var(--font-newsreader);
+		font: 600 10px/14px var(--font);
 		text-align: center;
 	}
 
@@ -205,8 +248,8 @@
 		align-items: center;
 		gap: 10px;
 		padding: 7px 10px;
-		background: #1d1d22;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		background: var(--chrome-bar);
+		border-bottom: 1px solid var(--chrome-line);
 	}
 
 	.navs {
@@ -215,12 +258,12 @@
 	}
 
 	.navs {
-		color: rgba(255, 255, 255, 0.45);
+		color: var(--chrome-icon);
 	}
 
 	.omnibox :global(svg) {
 		flex-shrink: 0;
-		color: rgba(255, 255, 255, 0.45);
+		color: var(--chrome-icon);
 	}
 
 	.omnibox {
@@ -231,9 +274,9 @@
 		gap: 8px;
 		padding: 6px 12px;
 		border-radius: 999px;
-		background: #2b2b31;
+		background: var(--chrome-omni);
 		font-size: 12.5px;
-		color: rgba(255, 255, 255, 0.75);
+		color: var(--chrome-omni-text);
 	}
 
 	.omnibox span {
@@ -266,7 +309,7 @@
 
 	.ext-btn:hover,
 	.ext-btn.open {
-		background: rgba(255, 255, 255, 0.1);
+		background: var(--chrome-hover);
 	}
 
 	.ext-btn:focus-visible {
@@ -290,6 +333,16 @@
 
 	@media (max-width: 640px) {
 		.lights {
+			display: none;
+		}
+		/* Narrow: inactive tabs collapse to their icon, like a phone browser */
+		.tab[aria-selected='false'] {
+			flex: 0 0 auto;
+		}
+		.tab[aria-selected='false'] .tab-label {
+			display: none;
+		}
+		.new-tab {
 			display: none;
 		}
 		.navs {

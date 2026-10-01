@@ -2,6 +2,17 @@
 	import type { DemoPlayer } from '$lib/demo/player.svelte';
 	import { formatTime } from '$lib/demo/tracks';
 	import Cover from './Cover.svelte';
+	import ArrowUpRight from 'phosphor-svelte/lib/ArrowUpRight';
+	import Minus from 'phosphor-svelte/lib/Minus';
+	import Pause from 'phosphor-svelte/lib/Pause';
+	import Play from 'phosphor-svelte/lib/Play';
+	import Plus from 'phosphor-svelte/lib/Plus';
+	import Repeat from 'phosphor-svelte/lib/Repeat';
+	import RepeatOnce from 'phosphor-svelte/lib/RepeatOnce';
+	import Shuffle from 'phosphor-svelte/lib/Shuffle';
+	import SkipBack from 'phosphor-svelte/lib/SkipBack';
+	import SkipForward from 'phosphor-svelte/lib/SkipForward';
+	import X from 'phosphor-svelte/lib/X';
 
 	let {
 		player,
@@ -165,7 +176,7 @@
 						type="button"
 						title="Open YouTube Music tab"
 						aria-label="Open YouTube Music tab"
-						onclick={() => (player.tab = 'ytm')}>↗</button
+						onclick={() => (player.tab = 'ytm')}><ArrowUpRight size={16} weight="bold" /></button
 					>
 				{/if}
 				<button
@@ -173,7 +184,8 @@
 					type="button"
 					title={player.minimized ? 'Maximize' : 'Minimize'}
 					aria-label={player.minimized ? 'Maximize' : 'Minimize'}
-					onclick={() => player.toggleMinimize()}>{player.minimized ? '+' : '−'}</button
+					onclick={() => player.toggleMinimize()}
+					>{#if player.minimized}<Plus size={16} weight="bold" />{:else}<Minus size={16} weight="bold" />{/if}</button
 				>
 				{#if variant === 'demo'}
 					<button
@@ -181,7 +193,7 @@
 						type="button"
 						title="Close"
 						aria-label="Close"
-						onclick={() => player.close()}>×</button
+						onclick={() => player.close()}><X size={16} weight="bold" /></button
 					>
 				{/if}
 			</div>
@@ -238,14 +250,14 @@
 								title={player.shuffle ? 'Shuffle on' : 'Shuffle off'}
 								aria-label={player.shuffle ? 'Shuffle on' : 'Shuffle off'}
 								aria-pressed={player.shuffle}
-								onclick={() => player.toggleShuffle()}>⇄</button
+								onclick={() => player.toggleShuffle()}><Shuffle size={18} weight="bold" /></button
 							>
 							<button
 								class="btn transport-btn"
 								type="button"
 								title="Previous"
 								aria-label="Previous"
-								onclick={() => player.previous()}>⏮</button
+								onclick={() => player.previous()}><SkipBack size={18} weight="fill" /></button
 							>
 							<button
 								class="btn transport-btn seek-step"
@@ -259,7 +271,8 @@
 								type="button"
 								title={player.playing ? 'Pause' : 'Play'}
 								aria-label={player.playing ? 'Pause' : 'Play'}
-								onclick={() => player.toggle()}>{player.playing ? '⏸' : '▶'}</button
+								onclick={() => player.toggle()}
+								>{#if player.playing}<Pause size={20} weight="fill" />{:else}<Play size={20} weight="fill" />{/if}</button
 							>
 							<button
 								class="btn transport-btn seek-step"
@@ -273,7 +286,7 @@
 								type="button"
 								title="Next"
 								aria-label="Next"
-								onclick={() => player.next()}>⏭</button
+								onclick={() => player.next()}><SkipForward size={18} weight="fill" /></button
 							>
 							<button
 								class="btn transport-btn repeat"
@@ -282,7 +295,8 @@
 								type="button"
 								title={repeatLabel}
 								aria-label={repeatLabel}
-								onclick={() => player.cycleRepeat()}>{player.repeat === 'ONE' ? '➀' : '⟳'}</button
+								onclick={() => player.cycleRepeat()}
+								>{#if player.repeat === 'ONE'}<RepeatOnce size={18} weight="bold" />{:else}<Repeat size={18} weight="bold" />{/if}</button
 							>
 						</div>
 					</div>
@@ -372,7 +386,7 @@
 
 	.title {
 		font-size: 13px;
-		font-weight: 650;
+		font-weight: 500;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -455,7 +469,7 @@
 
 	.line.active {
 		font-size: 16px;
-		font-weight: 700;
+		font-weight: 600;
 		color: #fff;
 	}
 
@@ -590,12 +604,12 @@
 
 	.btn.focus-source {
 		font-size: 15px;
-		font-weight: 600;
+		font-weight: 500;
 	}
 
 	.btn.minimize {
 		font-size: 16px;
-		font-weight: 600;
+		font-weight: 500;
 	}
 
 	.transport-btn {
@@ -608,7 +622,7 @@
 	.transport-btn.seek-step {
 		width: 34px;
 		font-size: 12px;
-		font-weight: 650;
+		font-weight: 500;
 		font-variant-numeric: tabular-nums;
 		letter-spacing: -0.02em;
 		color: rgba(242, 242, 244, 0.75);
@@ -629,7 +643,7 @@
 
 	.transport-btn.repeat.repeat-one {
 		font-size: 14px;
-		font-weight: 700;
+		font-weight: 500;
 	}
 
 	.transport-btn.play-toggle {

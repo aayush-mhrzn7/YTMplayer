@@ -34,9 +34,9 @@
 		position: absolute;
 		inset: 0;
 		overflow: auto;
-		/* A separate site with its own look: crisp white, Newsreader text, one green */
-		background: #ffffff;
-		color: #1f2421;
+		/* A separate site with its own look: crisp white, one green */
+		background: var(--web-bg);
+		color: var(--web-text);
 		text-align: left;
 		font-family: var(--font);
 	}
@@ -47,18 +47,17 @@
 		align-items: center;
 		gap: 16px;
 		padding: 16px 28px;
-		border-bottom: 1px solid #ececec;
+		border-bottom: 1px solid var(--web-line);
 		position: sticky;
 		top: 0;
-		background: rgba(255, 255, 255, 0.92);
+		background: var(--web-header);
 	}
 
 	.logo {
-		font-family: var(--font-newsreader);
-		font-size: 19px;
-		font-weight: 600;
+		font-size: 18px;
+		font-weight: 500;
 		letter-spacing: -0.01em;
-		color: #24543f;
+		color: var(--web-green-strong);
 	}
 
 	nav {
@@ -66,24 +65,22 @@
 		gap: 18px;
 		font-size: 13px;
 		font-weight: 500;
-		color: #6b706d;
+		color: var(--web-muted);
 	}
 
 	.body {
 		max-width: 600px;
 		margin: 0 auto;
 		padding: 32px 28px 220px;
-		font-family: var(--font-newsreader);
-		font-optical-sizing: auto;
-		font-size: 17px;
+		font-size: 16px;
 		line-height: 1.65;
 	}
 
 	.kicker {
 		font-family: var(--font);
 		font-size: 13px;
-		font-weight: 600;
-		color: #2f6b4f;
+		font-weight: 500;
+		color: var(--web-green);
 		margin: 0 0 10px;
 	}
 
@@ -92,7 +89,7 @@
 		line-height: 1.1;
 		letter-spacing: -0.015em;
 		margin: 0 0 20px;
-		font-weight: 600;
+		font-weight: 500;
 		text-wrap: balance;
 	}
 
@@ -103,9 +100,9 @@
 	blockquote {
 		margin: 24px 0;
 		padding-left: 18px;
-		border-left: 2px solid #2f6b4f;
+		border-left: 2px solid var(--web-green);
 		font-style: italic;
-		color: #3d4440;
+		color: var(--web-text-2);
 	}
 
 	@container viewport (max-width: 520px) {

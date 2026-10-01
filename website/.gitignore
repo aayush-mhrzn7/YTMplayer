@@ -22,3 +22,6 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .claude
+
+# Klim TEST fonts: licensed for local testing only, never commit or deploy them
+static/fonts/sohne/
