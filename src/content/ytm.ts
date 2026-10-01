@@ -4,6 +4,32 @@ import type {
   TransportCommandMessage,
 } from "../types";
 
+const INJECT_FLAG = "__ytmLyricsYtmInjected";
+
+type InjectHandle = { alive: () => boolean };
+
+function claimInjection(): boolean {
+  const w = window as unknown as Record<string, InjectHandle | undefined>;
+  const prev = w[INJECT_FLAG];
+  if (prev) {
+    try {
+      if (prev.alive()) return false;
+    } catch {
+      // Prior inject died (extension reloaded)
+    }
+  }
+  w[INJECT_FLAG] = {
+    alive: () => {
+      try {
+        return Boolean(chrome.runtime?.id);
+      } catch {
+        return false;
+      }
+    },
+  };
+  return true;
+}
+
 interface TrackSnapshot {
   title: string;
   artist: string;
@@ -224,16 +250,6 @@ function bindVideo(): void {
   video.addEventListener("loadedmetadata", onTransport);
 }
 
-chrome.runtime.onMessage.addListener(
-  (message: TransportCommandMessage, _sender, sendResponse) => {
-    if (message?.type !== "TRANSPORT_CMD") return false;
-    const ok = applyTransport(message.action);
-    window.setTimeout(() => poll(true), 120);
-    sendResponse({ ok });
-    return false;
-  },
-);
-
 function start(): void {
   poll(true);
   bindVideo();
@@ -260,8 +276,20 @@ function start(): void {
   }, 250);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start);
-} else {
-  start();
+if (claimInjection()) {
+  chrome.runtime.onMessage.addListener(
+    (message: TransportCommandMessage, _sender, sendResponse) => {
+      if (message?.type !== "TRANSPORT_CMD") return false;
+      const ok = applyTransport(message.action);
+      window.setTimeout(() => poll(true), 120);
+      sendResponse({ ok });
+      return false;
+    },
+  );
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
 }

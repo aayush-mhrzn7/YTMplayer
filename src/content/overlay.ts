@@ -9,7 +9,32 @@ import type {
 } from "../types";
 import { DEFAULT_PREFS, EMPTY_LYRICS } from "../types";
 
+const INJECT_FLAG = "__ytmLyricsOverlayInjected";
 const HOST_ID = "ytm-lyrics-overlay-host";
+
+type InjectHandle = { alive: () => boolean };
+
+function claimInjection(): boolean {
+  const w = window as unknown as Record<string, InjectHandle | undefined>;
+  const prev = w[INJECT_FLAG];
+  if (prev) {
+    try {
+      if (prev.alive()) return false;
+    } catch {
+      // Prior inject died (extension reloaded)
+    }
+  }
+  w[INJECT_FLAG] = {
+    alive: () => {
+      try {
+        return Boolean(chrome.runtime?.id);
+      } catch {
+        return false;
+      }
+    },
+  };
+  return true;
+}
 
 interface DragState {
   pointerId: number;
@@ -464,14 +489,16 @@ async function loadAll(): Promise<void> {
   }
 }
 
-chrome.runtime.onMessage.addListener((message: StatePushMessage) => {
-  if (message?.type !== "STATE_PUSH") return;
-  applyState({
-    prefs: message.prefs,
-    nowPlaying: message.nowPlaying,
-    lyrics: message.lyrics,
+if (claimInjection()) {
+  chrome.runtime.onMessage.addListener((message: StatePushMessage) => {
+    if (message?.type !== "STATE_PUSH") return;
+    applyState({
+      prefs: message.prefs,
+      nowPlaying: message.nowPlaying,
+      lyrics: message.lyrics,
+    });
   });
-});
 
-void loadAll();
-raf = requestAnimationFrame(tick);
+  void loadAll();
+  raf = requestAnimationFrame(tick);
+}

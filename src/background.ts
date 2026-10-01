@@ -364,8 +364,43 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   })();
 });
 
-chrome.runtime.onInstalled.addListener(() => {
-  void seedDefaults();
+/** Inject content scripts into tabs already open before install/update. */
+async function injectIntoExistingTabs(): Promise<void> {
+  let tabs: chrome.tabs.Tab[] = [];
+  try {
+    tabs = await chrome.tabs.query({ url: ["http://*/*", "https://*/*"] });
+  } catch {
+    return;
+  }
+
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (tab.id == null) return;
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ["content/overlay.js"],
+        });
+        if (isYtmUrl(tab.url)) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["content/ytm.js"],
+          });
+        }
+      } catch {
+        // Restricted pages, discarded tabs, no host access, etc.
+      }
+    }),
+  );
+}
+
+chrome.runtime.onInstalled.addListener((details) => {
+  void (async () => {
+    await seedDefaults();
+    if (details.reason === "install" || details.reason === "update") {
+      await injectIntoExistingTabs();
+    }
+  })();
 });
 
 chrome.runtime.onStartup.addListener(() => {
